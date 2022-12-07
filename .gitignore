@@ -9,3 +9,16 @@ install_manifest.txt
 compile_commands.json
 CTestTestfile.cmake
 _deps
+build
+DASH7-firmwares/CMakeLists.txt.user
+DASH7-firmwares/CMakeCache.txt
+DASH7-firmwares/CMakeFiles
+DASH7-firmwares/CMakeScripts
+DASH7-firmwares/Testing
+DASH7-firmwares/Makefile
+DASH7-firmwares/cmake_install.cmake
+DASH7-firmwares/install_manifest.txt
+DASH7-firmwares/compile_commands.json
+DASH7-firmwares/CTestTestfile.cmake
+DASH7-firmwares/_deps
+DASH7-firmwares/build

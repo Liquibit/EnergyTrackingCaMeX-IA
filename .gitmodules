@@ -1,0 +1,6 @@
+[submodule "Sub-IoT-Stack"]
+	path = DASH7-firmwares/Sub-IoT-Stack
+	url = ../Sub-IoT-Stack.git
+[submodule "pyd7a"]
+	path = Gateway-software/pyd7a
+	url = ../pyd7a.git
