@@ -22,3 +22,5 @@ DASH7-firmwares/compile_commands.json
 DASH7-firmwares/CTestTestfile.cmake
 DASH7-firmwares/_deps
 DASH7-firmwares/build
+*.pyc
+*.log

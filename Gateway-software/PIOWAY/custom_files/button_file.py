@@ -20,8 +20,8 @@ import json
 
 from enum import Enum
 
-from ...pyd7a.d7a.support.schema import Validatable, Types
-from ...pyd7a.d7a.system_files.file import File
+from pyd7a.d7a.support.schema import Validatable, Types
+from pyd7a.d7a.system_files.file import File
 from .custom_file_ids import CustomFileIds
 
 class ButtonStates(Enum):

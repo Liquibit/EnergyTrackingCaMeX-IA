@@ -29,17 +29,15 @@ import traceback
 import time
 import json
 
-
-
-from .custom_files.custom_files import CustomFiles
-from .custom_files.energy_file import EnergyFile, EnergyConfigFile
-from .custom_files.button_file import ButtonFile, ButtonConfigFile
+from custom_files.custom_files import CustomFiles
+from custom_files.energy_file import EnergyFile, EnergyConfigFile
+from custom_files.button_file import ButtonFile, ButtonConfigFile
 
 import paho.mqtt.client as mqtt
 import ssl
 
-from ..pyd7a.modem.modem import Modem
-from ..pyd7a.util.logger import configure_default_logger
+from pyd7a.modem.modem import Modem
+from pyd7a.util.logger import configure_default_logger
 
 
 class Modem2Mqtt():
