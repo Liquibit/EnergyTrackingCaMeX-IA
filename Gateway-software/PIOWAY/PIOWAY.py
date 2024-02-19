@@ -49,16 +49,17 @@ class Modem2Mqtt():
     argparser.add_argument("-r", "--rate", help="baudrate for serial device", type=int, default=115200)
     argparser.add_argument("-v", "--verbose", help="verbose", default=False, action="store_true")
     argparser.add_argument("-b", "--broker", help="mqtt broker hostname", default="homeassistant.local")
-    argparser.add_argument("-u", "--user", help="mqtt username", default=None)
-    argparser.add_argument("-p", "--password", help="mqtt password", default=None)
+    argparser.add_argument("-u", "--user", help="mqtt username", default="")
+    argparser.add_argument("-p", "--password", help="mqtt password", default="")
     argparser.add_argument("-l", "--log", help="path to the log file", default="/var/log/gateway.log")
-    argparser.add_argument("--home-assistant", help="use home assistant instead of mindsphere", default=False, action="store_true")
     argparser.add_argument("-ca", "--ca-cert", help="path to CA file", default=None)
     argparser.add_argument("--cl-cert", help="path to the client certificate file", default=None)
     argparser.add_argument("--key-file", help="path to client key file", default=None)
     argparser.add_argument("-c", "--client-id", help="client id used for the mqtt client", default="")
+    argparser.add_argument("-pr", "--project-id", help="project id used in the mqtt topic", default="")
+    argparser.add_argument("-e", "--edge-node-id", help="edge node id used in the mqtt topic", default="")
 
-    self.known_transmitters = []
+    self.known_transmitters = [] # make sure to only transmit config once
 
     self.config = argparser.parse_args()
     configure_default_logger(self.config.verbose, file=self.config.log)
@@ -79,13 +80,13 @@ class Modem2Mqtt():
     if self.config.ca_cert and self.config.cl_cert and self.config.key_file:
       port = 8883
       self.mq.tls_set(ca_certs=self.config.ca_cert, certfile=self.config.cl_cert, keyfile=self.config.key_file, tls_version=ssl.PROTOCOL_TLSv1_2)
-      self.mq.username_pw_set("", "")
       self.mq.tls_insecure_set(True)
     else:
       port = 1883
-      self.mq.username_pw_set(self.config.user, self.config.password)
 
-    self.mq.connect_async(self.config.broker, port, 60)
+    self.mq.username_pw_set(self.config.user, self.config.password)
+
+    self.mq.connect_async(self.config.broker, port)
     self.mq.loop_start()
     while not self.connected_to_mqtt: pass  # busy wait until connected
     logging.info("Connected to MQTT broker on {}".format(
@@ -111,36 +112,6 @@ class Modem2Mqtt():
       self.modem.stop_reading()
     except: pass
 
-  @staticmethod
-  def generate_home_assistant_link_budget(device, link_budget):
-    content={}
-    name = 'LinkBudget'
-    unique_id = '{}_{}'.format(device['ids'][0], name)
-    component = 'sensor'
-
-    content['state_topic']='homeassistant/{}/{}/state'.format(component, unique_id)
-    content['config_topic']='homeassistant/{}/{}/config'.format(component, unique_id)
-
-    config = {
-      'device': device,
-      # 'icon': we could choose a custom icon
-      # 'json_attributes_topic': ?
-      'name': name,
-      'qos': 1,
-      'unique_id': unique_id,
-      'state_topic': content['state_topic'],
-      'dev_cla': 'signal_strength',
-      'stat_cla': 'measurement',
-      'unit_of_meas': 'dBm',
-      'ent_cat': 'diagnostic'
-    }
-    
-    content['config'] = json.dumps(config)
-
-    content['state'] = link_budget
-    
-    return content
-
   def on_published(self, client, userdata, mid):
     logging.info("published message with id {} successfully".format(mid))
 
@@ -159,30 +130,16 @@ class Modem2Mqtt():
                                               parsedData, transmitterHexString))
 
       if fileType.__class__ in [ButtonFile, ButtonConfigFile, EnergyFile, EnergyConfigFile]:
-        if not self.config.home_assistant:
-          to_publish = parsedData.generate_mindsphere_data(link_budget)
-          self.mq.publish("tc/camexia/camexia_dash7_gateway_1/o/mc_v3/ts", to_publish, retain=False, qos=1)
-        else:
-          device = {
-              'mf': 'LiQuiBit',
-              'name': 'PowerMeasurement_{}'.format(transmitterHexString),
-              'ids': [transmitterHexString],
-              'mdl': 'modbus_to_D7_v1'
-              # 'sw_version' : could read from version file
-          }
-
-
-          to_publish_objects = parsedData.generate_home_assistant_data(device)
-
-          to_publish_objects.append(self.generate_home_assistant_link_budget(device, link_budget))
-
-          for to_publish in to_publish_objects:
-            logging.info("publish to {} with content {}".format(to_publish['config_topic'], to_publish['config']))
-            self.mq.publish(to_publish['config_topic'], to_publish['config'], retain=True)
-            logging.info("publish state to {} with content {}".format(to_publish['state_topic'], to_publish['state']))
-            self.mq.publish(to_publish['state_topic'], to_publish['state'], retain=True)
-
-          # logging.info("published file with content: {}".format(to_publish_objects))
+        config_json, data_json = parsedData.generate_scorp_io_data(link_budget)
+        
+        # if we did not send anything for this end device yet, first send the config
+        if transmitter not in self.known_transmitters:
+          self.known_transmitters.append(transmitter)
+          self.mq.publish(f"mqtts/{self.config.project_id}/DBIRTH/{self.config.edge_node_id}/{transmitterHexString}", config_json, qos=1, retain=True)
+        
+        self.mq.publish(f"mqtts/{self.config.project_id}/DDATA/{self.config.edge_node_id}/{transmitterHexString}", data_json, qos=1, retain=False)
+        
+        logging.info(f"published file for {transmitterHexString}")
 
     except (AttributeError, IndexError):
       # probably an answer on downlink we don't care about right now
