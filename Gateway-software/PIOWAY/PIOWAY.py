@@ -29,6 +29,8 @@ import traceback
 import time
 import json
 
+from bitstring import ConstBitStream
+
 from custom_files.custom_files import CustomFiles
 from custom_files.energy_file import EnergyFile, EnergyConfigFile
 from custom_files.button_file import ButtonFile, ButtonConfigFile
@@ -36,6 +38,7 @@ from custom_files.button_file import ButtonFile, ButtonConfigFile
 import paho.mqtt.client as mqtt
 import ssl
 
+from pyd7a.d7a.alp.parser import Parser as AlpParser
 from pyd7a.modem.modem import Modem
 from pyd7a.util.logger import configure_default_logger
 
@@ -48,9 +51,10 @@ class Modem2Mqtt():
                            default="/dev/ttyACM0")
     argparser.add_argument("-r", "--rate", help="baudrate for serial device", type=int, default=115200)
     argparser.add_argument("-v", "--verbose", help="verbose", default=False, action="store_true")
-    argparser.add_argument("-b", "--broker", help="mqtt broker hostname", default="homeassistant.local")
+    argparser.add_argument("-b", "--broker", help="mqtt broker hostname", default="")
     argparser.add_argument("-u", "--user", help="mqtt username", default="")
     argparser.add_argument("-p", "--password", help="mqtt password", default="")
+    argparser.add_argument("-po", "--port", help="mqtt port", default=8883, type=int)
     argparser.add_argument("-l", "--log", help="path to the log file", default="/var/log/gateway.log")
     argparser.add_argument("-ca", "--ca-cert", help="path to CA file", default=None)
     argparser.add_argument("--cl-cert", help="path to the client certificate file", default=None)
@@ -72,34 +76,40 @@ class Modem2Mqtt():
   def connect_to_mqtt(self):
     self.connected_to_mqtt = False
 
-    self.mq = mqtt.Client(self.config.client_id, True, None, mqtt.MQTTv311)
+    self.mq = mqtt.Client(self.config.client_id, None, None, mqtt.MQTTv5)
     self.mq.on_connect = self.on_mqtt_connect
     self.mq.on_publish = self.on_published
     self.mq.on_disconnect = self.on_mqtt_disconnect
     # self.mq.on_message = self.on_mqtt_message
     if self.config.ca_cert and self.config.cl_cert and self.config.key_file:
-      port = 8883
       self.mq.tls_set(ca_certs=self.config.ca_cert, certfile=self.config.cl_cert, keyfile=self.config.key_file, tls_version=ssl.PROTOCOL_TLSv1_2)
       self.mq.tls_insecure_set(True)
     else:
-      port = 1883
+      self.mq.tls_set(tls_version=ssl.PROTOCOL_TLSv1_2, cert_reqs=ssl.CERT_NONE)
 
     self.mq.username_pw_set(self.config.user, self.config.password)
 
-    self.mq.connect_async(self.config.broker, port)
+    self.mq.connect_async(self.config.broker, self.config.port)
     self.mq.loop_start()
     while not self.connected_to_mqtt: pass  # busy wait until connected
     logging.info("Connected to MQTT broker on {}".format(
       self.config.broker
     ))
 
-  def on_mqtt_connect(self, client, config, flags, rc):
-    logging.info("mqtt connected")
+  # properties argument is necessary for MQTTv5
+  def on_mqtt_connect(self, client, userdata, flags, reason_code, properties):
+    logging.info(f"mqtt connected with reason {reason_code}")
     # self.mq.subscribe(self.mqtt_topic_outgoing)
     self.connected_to_mqtt = True
+
+    # # Test with example data
+    # hexstring = "20 34 00 40 61 00 01 02 03 04 05 06 07 08 09 00 01 02 03 04 05 06 07 08 09 00 01 02 03 04 05 06 07 08 09 00 01 02 03 04 05 06 07 08 09 00 01 02 03 04 05 06 07 08 09 00 01 02 03 04 05 06 07 08 09 00 01 02 03 04 05 06 07 08 09 00 01 02 03 04 05 06 07 08 09 00 01 02 03 04 05 06 07 08 09 00 01 02 03 04 05 06 62 D7 14 32 00 00 39 47 50 00 49 00 A9 20 01 32 36 36 30 00 39 00 4C".replace(" ","")
+    # data =bytearray(bytes.fromhex(hexstring))
+    # self.on_command_received(AlpParser(custom_files_class=CustomFiles).parse(ConstBitStream(data), len(data)))
     
-  def on_mqtt_disconnect(self, client, userdata, rc):
-    logging.warning("mqtt disconnected: {}".format(mqtt.connack_string(rc)))
+  # properties argument is necessary for MQTTv5
+  def on_mqtt_disconnect(self, client, userdata, reason_code, properties):
+    logging.warning("mqtt disconnected: {}".format(mqtt.connack_string(reason_code)))
 
   def on_mqtt_message(self, client, config, msg):
     # downlink is currently not handled yet

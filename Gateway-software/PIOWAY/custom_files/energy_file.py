@@ -28,11 +28,11 @@ from .custom_file_ids import CustomFileIds
 class EnergyFile(File, Validatable):
   FILE_SIZE = 97
   SCHEMA = [{
-    "apparent_energy": Types.LIST(Types.INTEGER(min=-0x8000000000000000, max=0x7FFFFFFFFFFFFFFF)), # 3 phases int64
-    "real_energy": Types.LIST(Types.INTEGER(min=-0x8000000000000000, max=0x7FFFFFFFFFFFFFFF)), # 3 phases int64
-    "current": Types.LIST(Types.INTEGER(min=-0x8000000000000000, max=0x7FFFFFFFFFFFFFFF)), # 3 phases int64
-    "voltage": Types.LIST(Types.INTEGER(min=-0x8000, max=0x7FFF)), # 3 phases int16
-    "measurement_valid": Types.BOOLEAN()
+    # "apparent_energy": Types.LIST(Types.INTEGER(min=-0x8000000000000000, max=0x7FFFFFFFFFFFFFFF)), # 3 phases int64
+    # "real_energy": Types.LIST(Types.INTEGER(min=-0x8000000000000000, max=0x7FFFFFFFFFFFFFFF)), # 3 phases int64
+    # "current": Types.LIST(Types.INTEGER(min=-0x8000000000000000, max=0x7FFFFFFFFFFFFFFF)), # 3 phases int64
+    # "voltage": Types.LIST(Types.INTEGER(min=-0x8000, max=0x7FFF)), # 3 phases int16
+    # "measurement_valid": Types.BOOLEAN()
   }]
 
 
