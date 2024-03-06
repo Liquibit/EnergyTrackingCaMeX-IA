@@ -21,6 +21,7 @@
 import argparse
 
 import logging
+import logging.handlers
 import platform
 import signal
 import sys
@@ -66,12 +67,19 @@ class Modem2Mqtt():
     self.known_transmitters = [] # make sure to only transmit config once
 
     self.config = argparser.parse_args()
-    configure_default_logger(self.config.verbose, file=self.config.log)
+    self.configure_logger(file=self.config.log, logging_level=(logging.DEBUG if self.config.verbose else logging.INFO))
 
     self.modem = Modem(self.config.device, self.config.rate, self.on_command_received, custom_files_class=CustomFiles)
     self.modem.connect()
     self.connect_to_mqtt()
 
+  def configure_logger(self, file, logging_level):
+    log = logging.getLogger()
+    formatter = logging.Formatter('%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
+    handler = logging.handlers.WatchedFileHandler(file)
+    handler.setFormatter(formatter)
+    log.addHandler(handler)
+    log.setLevel(logging_level)
 
   def connect_to_mqtt(self):
     self.connected_to_mqtt = False
