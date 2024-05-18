@@ -148,12 +148,15 @@ class Modem2Mqtt():
                                               parsedData, transmitterHexString))
 
       if fileType.__class__ in [ButtonFile, ButtonConfigFile, EnergyFile, EnergyConfigFile]:
-        config_json, data_json = parsedData.generate_scorp_io_data(link_budget)
+        data_json = parsedData.generate_scorp_io_data(link_budget)
+
+        if not data_json:
+          return
         
         # if we did not send anything for this end device yet, first send the config
         if transmitter not in self.known_transmitters:
           self.known_transmitters.append(transmitter)
-          self.mq.publish(f"mqtts/{self.config.project_id}/DBIRTH/{self.config.edge_node_id}/{transmitterHexString}", config_json, qos=1, retain=True)
+          self.mq.publish(f"mqtts/{self.config.project_id}/DBIRTH/{self.config.edge_node_id}/{transmitterHexString}", CustomFiles.global_sparkplug_config, qos=1, retain=True)
         
         self.mq.publish(f"mqtts/{self.config.project_id}/DDATA/{self.config.edge_node_id}/{transmitterHexString}", data_json, qos=1, retain=False)
         

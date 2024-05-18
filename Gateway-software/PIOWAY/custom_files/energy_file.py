@@ -86,12 +86,7 @@ class EnergyFile(File, Validatable):
     }
     data_json = json.dumps(data)
 
-    for metric in data["metrics"]:
-      metric.pop("timestamp")
-      metric.pop("value")
-    
-    config_json = json.dumps(data)
-    return config_json, data_json
+    return data_json
 
   def __iter__(self):
     for i in range(3):
