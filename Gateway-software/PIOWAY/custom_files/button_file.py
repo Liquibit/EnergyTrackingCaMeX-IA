@@ -64,8 +64,8 @@ class ButtonFile(File, Validatable):
     timestamp = round( time.time() * 1000 ) # get time in milliseconds
     data = {
       "metrics" : [
-        { "name":"Bouton Pressé",               "dataType":"Boolean",    "timestamp":timestamp, "value":(self.buttons_state & ButtonStates.BUTTON1_PRESSED) > 0 },
-        { "name":"Force du signal radio DASH7", "dataType":"Short",      "timestamp":timestamp, "value":link_budget                                             },
+        { "name":"Bouton Pressé",               "dataType":"Boolean",    "timestamp":timestamp, "value":(self.buttons_state & ButtonStates.BUTTON1_PRESSED.value) > 0 },
+        { "name":"Force du signal radio DASH7", "dataType":"Short",      "timestamp":timestamp, "value":link_budget                                                   },
       ]
     }
     data_json = json.dumps(data)
