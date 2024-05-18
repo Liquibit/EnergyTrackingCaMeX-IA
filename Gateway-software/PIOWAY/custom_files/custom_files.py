@@ -1,3 +1,5 @@
+import json
+
 from .custom_file_ids import CustomFileIds
 
 from .energy_file import EnergyFile, EnergyConfigFile
@@ -13,7 +15,7 @@ class CustomFiles:
         CustomFileIds.BUTTON_CONFIGURATION: ButtonConfigFile(),
     }
 
-    global_sparkplug_config =  {
+    global_sparkplug_config =  json.dumps({
       "metrics" : [
         { "Name":"Énergie apparante/phase 1",       "dataType":"Long"},
         { "Name":"Énergie apparante/phase 2",       "dataType":"Long"},
@@ -31,7 +33,7 @@ class CustomFiles:
         { "Name":"Bouton Pressé",                   "dataType":"Boolean"},
         { "Name":"État de la liaison Modbus/DASH7", "dataType":"Boolean"},
       ]
-    }
+    })
 
     def get_all_files(self):
         return sorted(self.files, key=lambda t: t.value)
