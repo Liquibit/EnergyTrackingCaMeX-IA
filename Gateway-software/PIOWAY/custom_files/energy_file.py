@@ -68,20 +68,20 @@ class EnergyFile(File, Validatable):
     timestamp = round( time.time() * 1000 ) # get time in milliseconds
     data = {
       "metrics" : [
-        { "Name":"Énergie apparante/phase 1",       "dataType":"Long",    "timestamp":timestamp, "value":self.apparent_energy[0] },
-        { "Name":"Énergie apparante/phase 2",       "dataType":"Long",    "timestamp":timestamp, "value":self.apparent_energy[1] },
-        { "Name":"Énergie apparante/phase 3",       "dataType":"Long",    "timestamp":timestamp, "value":self.apparent_energy[2] },
-        { "Name":"Énergie active/phase 1",          "dataType":"Long",    "timestamp":timestamp, "value":self.real_energy[0]     },
-        { "Name":"Énergie active/phase 2",          "dataType":"Long",    "timestamp":timestamp, "value":self.real_energy[1]     },
-        { "Name":"Énergie active/phase 3",          "dataType":"Long",    "timestamp":timestamp, "value":self.real_energy[2]     },
-        { "Name":"Courent/phase 1",                 "dataType":"Long",    "timestamp":timestamp, "value":self.current[0]         },
-        { "Name":"Courent/phase 2",                 "dataType":"Long",    "timestamp":timestamp, "value":self.current[1]         },
-        { "Name":"Courent/phase 3",                 "dataType":"Long",    "timestamp":timestamp, "value":self.current[2]         },
-        { "Name":"Voltage/phase 1",                 "dataType":"Short",   "timestamp":timestamp, "value":self.voltage[0]         },
-        { "Name":"Voltage/phase 2",                 "dataType":"Short",   "timestamp":timestamp, "value":self.voltage[1]         },
-        { "Name":"Voltage/phase 3",                 "dataType":"Short",   "timestamp":timestamp, "value":self.voltage[2]         },
-        { "Name":"Force du signal radio DASH7",     "dataType":"Short",   "timestamp":timestamp, "value":link_budget             },
-        { "Name":"État de la liaison Modbus/DASH7", "dataType":"Boolean", "timestamp":timestamp, "value":self.measurement_valid  },
+        { "name":"Énergie apparante/phase 1",         "dataType":"Long",    "timestamp":timestamp, "value":self.apparent_energy[0] },
+        { "name":"Énergie apparante/phase 2",         "dataType":"Long",    "timestamp":timestamp, "value":self.apparent_energy[1] },
+        { "name":"Énergie apparante/phase 3",         "dataType":"Long",    "timestamp":timestamp, "value":self.apparent_energy[2] },
+        { "name":"Énergie active/phase 1",            "dataType":"Long",    "timestamp":timestamp, "value":self.real_energy[0]     },
+        { "name":"Énergie active/phase 2",            "dataType":"Long",    "timestamp":timestamp, "value":self.real_energy[1]     },
+        { "name":"Énergie active/phase 3",            "dataType":"Long",    "timestamp":timestamp, "value":self.real_energy[2]     },
+        { "name":"Courent/phase 1",                   "dataType":"Long",    "timestamp":timestamp, "value":self.current[0]         },
+        { "name":"Courent/phase 2",                   "dataType":"Long",    "timestamp":timestamp, "value":self.current[1]         },
+        { "name":"Courent/phase 3",                   "dataType":"Long",    "timestamp":timestamp, "value":self.current[2]         },
+        { "name":"Voltage/phase 1",                   "dataType":"Short",   "timestamp":timestamp, "value":self.voltage[0]         },
+        { "name":"Voltage/phase 2",                   "dataType":"Short",   "timestamp":timestamp, "value":self.voltage[1]         },
+        { "name":"Voltage/phase 3",                   "dataType":"Short",   "timestamp":timestamp, "value":self.voltage[2]         },
+        { "name":"Force du signal radio DASH7",       "dataType":"Short",   "timestamp":timestamp, "value":link_budget             },
+        { "name":"État de la liaison Modbus - DASH7", "dataType":"Boolean", "timestamp":timestamp, "value":self.measurement_valid  },
       ]
     }
     data_json = json.dumps(data)
