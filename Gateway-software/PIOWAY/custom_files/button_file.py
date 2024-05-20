@@ -110,7 +110,7 @@ class ButtonConfigFile(File, Validatable):
     return ButtonConfigFile(transmit_mask_0=transmit_mask_0, transmit_mask_1=transmit_mask_1, button_control_menu=button_control_menu, enabled=enabled)
 
   def generate_scorp_io_data(self, link_budget):
-    return None, None
+    return None
   
   def __iter__(self):
     yield self.transmit_mask_0

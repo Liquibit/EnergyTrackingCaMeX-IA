@@ -129,7 +129,7 @@ class EnergyConfigFile(File, Validatable):
     return EnergyConfigFile(interval=interval, enabled=enabled)
 
   def generate_scorp_io_data(self, link_budget):
-    return None, None
+    return None
 
   def __iter__(self):
     for byte in bytearray(struct.pack(">I", self.interval)):
