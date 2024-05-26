@@ -19,6 +19,7 @@
 #
 
 import argparse
+import configparser
 
 import logging
 import logging.handlers
@@ -63,10 +64,35 @@ class Modem2Mqtt():
     argparser.add_argument("-c", "--client-id", help="client id used for the mqtt client", default="")
     argparser.add_argument("-pr", "--project-id", help="project id used in the mqtt topic", default="")
     argparser.add_argument("-e", "--edge-node-id", help="edge node id used in the mqtt topic", default="")
+    argparser.add_argument("--config", help="config file with configuration", default="")
+    self.config = argparser.parse_args()
+
+    if self.config.config:
+      config_parser = configparser.ConfigParser()
+      config_parser.read(self.config.config)
+      if ('SERIAL' in config_parser) and ('device' in config_parser['SERIAL']):
+        self.config.device = config_parser['SERIAL']['device']
+      if 'MQTT' in config_parser:
+        mqtt_config = config_parser['MQTT']
+        if 'broker' in mqtt_config:
+          self.config.broker = mqtt_config['broker']
+        if 'port' in mqtt_config:
+          self.config.port = int(mqtt_config['port'])
+        if 'username' in mqtt_config:
+          self.config.user = mqtt_config['username']
+        if 'password' in mqtt_config:
+          self.config.password = mqtt_config['password']
+        if 'client_id' in mqtt_config:
+          self.config.client_id = mqtt_config['client_id']
+        if 'project_id' in mqtt_config:
+          self.config.project_id = mqtt_config['project_id']
+        if 'edge_node_id' in mqtt_config:
+          self.config.edge_node_id = mqtt_config['edge_node_id']
+      if ('LOG' in config_parser) and ('location' in config_parser['LOG']):
+          self.config.log = config_parser["LOG"]['location']
 
     self.known_transmitters = [] # make sure to only transmit config once
 
-    self.config = argparser.parse_args()
     self.configure_logger(file=self.config.log, logging_level=(logging.DEBUG if self.config.verbose else logging.INFO))
 
     self.modem = Modem(self.config.device, self.config.rate, self.on_command_received, custom_files_class=CustomFiles)

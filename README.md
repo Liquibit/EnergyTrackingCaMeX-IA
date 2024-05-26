@@ -45,3 +45,25 @@ For this project, this software was deployed on a raspberry pi. All necessary pa
 The software is written in python2 as it's fully dependant on [the PyD7A library](https://github.com/liquibit/pyd7a). It is configured to receive messages from the serial connection, parse them into known files and forward it over MQTT to a mindpshere instance. This requires an aspect to already be configured and initialised in Mindsphere.
 
 The software is set up with Monit to start on boot and make sure it keeps running. An example can be found in Gateway-software/monit.
+
+## Setting up the OS
+
+First pull the code from the public github and put all aspects in the appropriate locations.
+```
+sudo git clone https://github.com/Liquibit/EnergyTrackingCaMeX-IA.git --recurse-submodules /opt
+sudo chmod +x /opt/EnergyTrackingCaMeX-IA/Gateway-software/os-config/gateway
+sudo ln -s /opt/EnergyTrackingCaMeX-IA/Gateway-software/os-config/gateway /bin/gateway
+sudo ln -s /opt/EnergyTrackingCaMeX-IA/Gateway-software/os-config/gateway.monit /etc/monit/conf.d/
+sudo ln -s /opt/EnergyTrackingCaMeX-IA/Gateway-software/os-config/PIOWAY /etc/logrotate.d/
+```
+
+This will set up the following things:
+- Monit will make sure the code keeps running, restarts it when something goes wrong and starts it up on boot.
+- Logrotate will rotate and compress the logs every week to make sure we're not using too much memory.
+
+Then, make sure your python3 instance has all requirements installed
+```
+python3 -m pip install -r /opt/EnergyTrackingCaMeX-IA/Gateway-software/pyd7a/requirements.txt
+```
+
+Now, you should be good to go after a reboot!

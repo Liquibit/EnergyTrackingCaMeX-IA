@@ -1,0 +1,4 @@
+check process gateway
+with pidfile /var/run/gateway.pid
+START PROGRAM = "/bin/bash /bin/gateway start"
+STOP PROGRAM = "/bin/bash /bin/gateway stop"

@@ -1,3 +1,5 @@
+su root root
+
 /var/log/PIOWAY {
     rotate 5
     weekly
