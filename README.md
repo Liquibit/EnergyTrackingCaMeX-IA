@@ -5,7 +5,7 @@ This project exists of 4 parts:
 - Energy Measurement device
 - MODBUS-to-DASH7 device
 - DASH7 gateway
-- Gateway software to Mindsphere
+- Gateway software to Scorpio
 
 We will go over each part in this overview.
 
@@ -15,18 +15,29 @@ For this project, we used the Accuenergy AcuRev 1312-RCT-X0 together with 3 Rogo
 
 ## MODBUS-to-DASH7 device
 
-Custom hardware made by LiQuiBit. Every 15 minutes, it communicates over RS485 with the energy measurement device and sends this data over DASH7. 
+Custom hardware made by LiQuiBit. Every 10 minutes, it communicates over RS485 with the energy measurement device and sends this data over DASH7. 
 
 The data gets structured as a file in the following format:
 
 EnergyFile:
 |Field|Type|
 |---|---|
-|real energy|signed int 64|
-|apparent energy|signed int 64|
-|valid energy|boolean|
+|apparent energy/phase 1|signed int 64|
+|apparent energy/phase 2|signed int 64|
+|apparent energy/phase 3|signed int 64|
+|active energy/phase 1|signed int 64|
+|active energy/phase 2|signed int 64|
+|active energy/phase 3|signed int 64|
+|Current/phase 1|signed int 32|
+|Current/phase 2|signed int 32|
+|Current/phase 3|signed int 32|
+|Voltage/phase 1|signed int 16|
+|Voltage/phase 2|signed int 16|
+|Voltage/phase 3|signed int 16|
+|Received Signal Strength|signed int 16|
+|valid measurement|boolean|
 
-Valid energy indicates if it succeeded at reading out the values from the measurement device. 
+Valid measurement indicates if it succeeded at reading out the values from the measurement device. 
 
 You can find the firmware for this device in the DASH7-firmwares folder. 
 
@@ -38,13 +49,11 @@ Using the [IOWAY gateway](https://www.liquibit.be/our_product.html) from LiQuiBi
 
 The firmware on the IOWAY gateway is the default IOWAY gateway application of the Sub-IoT stack. More information can be found in [the LiQuiBit documentation](https://docs.liquibit.be/docs/The-IOWAY-firmware/).
 
-## Gateway software to Mindsphere
+## Gateway software to Scorp-IO
 
 For this project, this software was deployed on a raspberry pi. All necessary parts can be found in the Gateway-software folder.
 
-The software is written in python2 as it's fully dependant on [the PyD7A library](https://github.com/liquibit/pyd7a). It is configured to receive messages from the serial connection, parse them into known files and forward it over MQTT to a mindpshere instance. This requires an aspect to already be configured and initialised in Mindsphere.
-
-The software is set up with Monit to start on boot and make sure it keeps running. An example can be found in Gateway-software/monit.
+The software is written in python3 as it's fully dependant on [the PyD7A library](https://github.com/liquibit/pyd7a). It is configured to receive messages from the serial connection, parse them into known files and forward it over MQTT to Scorp-IO. This sends all configuration to Scorp-IO on the first message of a device and does not require any extra configuration up front.
 
 ## Setting up the OS
 
