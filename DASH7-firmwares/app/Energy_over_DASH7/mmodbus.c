@@ -3,6 +3,7 @@
 #include "mmodbus.h"
 #include "stm32_device.h"
 #include "log.h"
+#include "hwsystem.h"
 MModBus_t mmodbus;
 
 //#####################################################################################################
@@ -517,16 +518,19 @@ bool mmodbus_readHoldingRegisters32f(uint8_t slaveAddress, uint16_t startnumber,
 //##################################################################################################
 bool mmodbus_readHoldingRegister32i(uint8_t slaveAddress, uint16_t number, uint32_t *data)
 {
+  hw_busy_wait(3000);
   return mmodbus_readHoldingRegisters32i(slaveAddress, number, 1, data); 
 }
 //##################################################################################################
 bool mmodbus_readHoldingRegisters32i(uint8_t slaveAddress, uint16_t startnumber, uint16_t length, uint32_t *data)
 {
+  hw_busy_wait(3000);
   return mmodbus_readHoldingRegisters32f(slaveAddress, startnumber, length, (float*)data);
 }
 //##################################################################################################
 bool mmodbus_readHoldingRegister16i(uint8_t slaveAddress, uint16_t number, uint16_t *data)
 {
+  hw_busy_wait(3000);
   return mmodbus_readHoldingRegisters16i(slaveAddress, number, 1, data); 
 }
 //##################################################################################################

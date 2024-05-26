@@ -22,20 +22,17 @@
  *
  * @author contact@liquibit.be
  */
-#ifndef __ACUREF_1312_RCT_H
-#define __ACUREF_1312_RCT_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "stdbool.h"
+#ifndef __PLATFORM_LED_H_
+#define __PLATFORM_LED_H_
 
+#include "hwleds.h"
+#include "timer.h"
 
-void acurev_1312_rct_init();
-bool acurev_get_real_energy(int64_t *real_energy_a, int64_t *real_energy_b, int64_t *real_energy_c);
-bool acurev_get_apparent_energy(int64_t *apparent_energy_a, int64_t *apparent_energy_b, int64_t *apparent_energy_c);
-bool acurev_get_voltage(int16_t *voltage_a, int16_t *voltage_b, int16_t *voltage_c);
-bool acurev_get_current(int32_t *current_a, int32_t *current_b, int32_t *current_c);
+#define FLASH_ON_DURATION TIMER_TICKS_PER_SEC * 0.1
+#define FLASH_OFF_DURATION TIMER_TICKS_PER_SEC * 0.2
 
+bool led_init(void);
+void led_flash(uint8_t flash_times);
 
-#endif //__ACUREF_1312_RCT_H
+#endif

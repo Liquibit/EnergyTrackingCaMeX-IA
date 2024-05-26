@@ -22,20 +22,43 @@
  *
  * @author contact@liquibit.be
  */
-#ifndef __ACUREF_1312_RCT_H
-#define __ACUREF_1312_RCT_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "stdbool.h"
+#ifndef __PORTS_H_
+#define __PORTS_H_
 
-
-void acurev_1312_rct_init();
-bool acurev_get_real_energy(int64_t *real_energy_a, int64_t *real_energy_b, int64_t *real_energy_c);
-bool acurev_get_apparent_energy(int64_t *apparent_energy_a, int64_t *apparent_energy_b, int64_t *apparent_energy_c);
-bool acurev_get_voltage(int16_t *voltage_a, int16_t *voltage_b, int16_t *voltage_c);
-bool acurev_get_current(int32_t *current_a, int32_t *current_b, int32_t *current_c);
+#include "stm32_device.h"
+#include "stm32_common_mcu.h"
+#include "platform_defs.h"
+#include "hwgpio.h"
 
 
-#endif //__ACUREF_1312_RCT_H
+#define SPI_COUNT 1
+static const spi_port_t spi_ports[SPI_COUNT] = {
+  {
+    .spi = SPI1,
+    .miso_pin = PIN(GPIO_PORTA, 6),
+    .mosi_pin = PIN(GPIO_PORTA, 7),
+    .sck_pin = PIN(GPIO_PORTB, 3),
+    .sck_alternate = GPIO_AF0_SPI1,
+    .miso_alternate = GPIO_AF0_SPI1,
+    .mosi_alternate = GPIO_AF0_SPI1
+
+  }
+};
+
+#define UART_COUNT 1
+static const uart_port_t uart_ports[UART_COUNT] = {
+  {
+    // USART1, exposed on CN3 header: TX=PA9, RX=PA10
+    .tx = PIN(GPIO_PORTA, 9),
+    .rx = PIN(GPIO_PORTA, 10),
+    .alternate = GPIO_AF4_USART1,
+    .uart = USART1,
+    .irq = USART1_IRQn,
+    .swap_tx_rx = true
+  }
+};
+
+
+
+#endif

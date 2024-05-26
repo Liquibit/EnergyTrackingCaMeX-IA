@@ -40,7 +40,7 @@
 
 #define ENERGY_FILE_ID 52
 #define ENERGY_FILE_SIZE sizeof(energy_file_t)
-#define RAW_ENERGY_FILE_SIZE 17
+#define RAW_ENERGY_FILE_SIZE 67
 
 #define ENERGY_CONFIG_FILE_ID 62
 #define ENERGY_CONFIG_FILE_SIZE sizeof(energy_config_file_t)
@@ -50,8 +50,18 @@ typedef struct {
     union {
         uint8_t bytes[RAW_ENERGY_FILE_SIZE];
         struct {
-            int64_t real_energy;
-            int64_t apparent_energy;
+            int64_t apparent_energy_a;
+            int64_t apparent_energy_b;
+            int64_t apparent_energy_c;
+            int64_t real_energy_a;
+            int64_t real_energy_b;
+            int64_t real_energy_c;
+            int32_t current_a;
+            int32_t current_b;
+            int32_t current_c;
+            int16_t voltage_a;
+            int16_t voltage_b;
+            int16_t voltage_c;
             bool measurement_valid;
         } __attribute__((__packed__));
     };
@@ -67,13 +77,13 @@ typedef struct {
     };
 } energy_config_file_t;
 
-
+static energy_file_t energy_file;
 
 static void file_modified_callback(uint8_t file_id);
 void energy_file_execute_measurement();
 
 static energy_config_file_t energy_config_file_cached
-    = (energy_config_file_t) { .interval = 15 * 60, .enabled = true };
+    = (energy_config_file_t) { .interval = 60 * 10, .enabled = true };
 
 static bool energy_file_transmit_state = false;
 static bool energy_config_file_transmit_state = false;
@@ -111,10 +121,6 @@ error_t energy_files_initialize()
     } else if (ret != SUCCESS)
         log_print_error_string("Error reading energy configuration file: %d", ret);
 
-    energy_file_t energy_file = {
-        0,
-    };
-
     ret = d7ap_fs_init_file(ENERGY_FILE_ID, &volatile_file_header, energy_file.bytes);
     if (ret != SUCCESS) {
         log_print_error_string("Error initializing energy file: %d", ret);
@@ -147,7 +153,6 @@ static void file_modified_callback(uint8_t file_id)
                 energy_config_file_cached.bytes, ENERGY_CONFIG_FILE_SIZE, ENERGY_CONFIG_FILE_ID);
     } else if (file_id == ENERGY_FILE_ID) {
         // energy file got modified, most likely internally
-        energy_file_t energy_file;
         uint32_t size = ENERGY_FILE_SIZE;
         d7ap_fs_read_file(ENERGY_FILE_ID, 0, energy_file.bytes, &size, ROOT_AUTH);
         queue_add_file(energy_file.bytes, ENERGY_FILE_SIZE, ENERGY_FILE_ID);
@@ -166,14 +171,18 @@ void energy_file_transmit_config_file()
 void energy_file_execute_measurement()
 {
     DPRINT("executing energy measurement");
-    int64_t real_energy,apparent_energy;
     bool measurement_valid = true;
-    measurement_valid = acurev_get_real_energy(&real_energy);
-    measurement_valid &= acurev_get_apparent_energy(&apparent_energy);
-    DPRINT("valid %d, real energy %d, apparent energy %d", measurement_valid, (uint32_t)real_energy,(uint32_t) apparent_energy);
-    energy_file_t energy_file = { .real_energy = real_energy, .apparent_energy = apparent_energy, .measurement_valid = measurement_valid};
-    d7ap_fs_write_file(ENERGY_FILE_ID, 0, energy_file.bytes, ENERGY_FILE_SIZE, ROOT_AUTH);
+
+    measurement_valid &= acurev_get_real_energy(&energy_file.real_energy_a, &energy_file.real_energy_b, &energy_file.real_energy_c);
+    measurement_valid &= acurev_get_apparent_energy(&energy_file.apparent_energy_a, &energy_file.apparent_energy_b, &energy_file.apparent_energy_c);
+    measurement_valid &= acurev_get_voltage(&energy_file.voltage_a, &energy_file.voltage_b, &energy_file.voltage_c);
+    measurement_valid &= acurev_get_current(&energy_file.current_a, &energy_file.current_b, &energy_file.current_c);
+
+    energy_file.measurement_valid = measurement_valid;
+
+    d7ap_fs_write_file(ENERGY_FILE_ID, 0, energy_file.bytes, sizeof(energy_file), ROOT_AUTH);
 }
+
 
 void energy_file_set_measure_state(bool enable)
 {

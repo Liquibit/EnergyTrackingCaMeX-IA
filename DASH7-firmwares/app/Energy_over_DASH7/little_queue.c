@@ -47,7 +47,7 @@
 #include "network_manager.h"
 
 #define FRAMEWORK_LITTLE_QUEUE_LOG 1
-#define MAX_FILE_SIZE 10
+#define MAX_FILE_SIZE 70
 #define MAX_RETRY_ATTEMPTS 10
 #define D7_TX_POWER 17
 
