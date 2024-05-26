@@ -57,7 +57,7 @@ uint16_t mmodbus_crc16(const uint8_t *nData, uint16_t wLength)
 } 
 #endif
 //#####################################################################################################
-void modbus_callback_stack(uint8_t data)
+void modbus_callback_stack(uart_handle_t* uart, uint8_t data)
 {
   if(mmodbus.rxIndex <_MMODBUS_RXSIZE - 1)
   {

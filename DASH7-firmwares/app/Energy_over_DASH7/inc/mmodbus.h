@@ -48,6 +48,7 @@
 #include  <string.h>
 #include  <stdio.h>
 #include "stm32_device.h"
+#include "hwuart.h"
 
 #if _MMODBUS_FREERTOS == 1
 #include  "cmsis_os.h"
@@ -105,7 +106,7 @@ typedef struct
 //##################################################################################################
 
 void    mmodbus_callback(void);
-void modbus_callback_stack(uint8_t data);
+void    modbus_callback_stack(uart_handle_t* uart, uint8_t data);
 void    mmodbus_callback_txDMA(void);
 bool    mmodbus_init(uint32_t setTimeout);
 void    mmodbus_set16bitOrder(MModBus_16bitOrder_t MModBus_16bitOrder_);

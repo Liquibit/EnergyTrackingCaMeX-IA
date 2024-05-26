@@ -83,7 +83,7 @@ static void file_modified_callback(uint8_t file_id);
 void energy_file_execute_measurement();
 
 static energy_config_file_t energy_config_file_cached
-    = (energy_config_file_t) { .interval = 60 * 10, .enabled = true };
+    = (energy_config_file_t) { .interval =  60 * 5, .enabled = true };
 
 static bool energy_file_transmit_state = false;
 static bool energy_config_file_transmit_state = false;
@@ -133,6 +133,7 @@ error_t energy_files_initialize()
     d7ap_fs_register_file_modified_callback(ENERGY_FILE_ID, &file_modified_callback);
     sched_register_task(&energy_file_execute_measurement);
     DPRINT("energy file inited");
+    return ret;
 }
 
 static void file_modified_callback(uint8_t file_id)

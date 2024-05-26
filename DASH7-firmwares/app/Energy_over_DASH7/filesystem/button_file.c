@@ -133,6 +133,7 @@ error_t button_files_initialize()
     d7ap_fs_register_file_modified_callback(BUTTON_CONFIG_FILE_ID, &file_modified_callback);
     d7ap_fs_register_file_modified_callback(BUTTON_FILE_ID, &file_modified_callback);
     ubutton_register_callback(&userbutton_callback);
+    return ret;
 }
 
 static void file_modified_callback(uint8_t file_id)
