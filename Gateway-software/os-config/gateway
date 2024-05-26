@@ -5,7 +5,7 @@ PIDFILE=/var/run/gateway.pid
 case $1 in
    start)
        # Launch your program as a detached process
-       PYTHONPATH=<path>/EnergyTrackingCaMeX-IA/Gateway-software:<path>/EnergyTrackingCaMeX-IA/Gateway-software/pyd7a python2.7 <path>/EnergyTrackingCaMeX-IA/Gateway-software/PIOWAY/PIOWAY.py -d <serial-port> -b <url-to-broker> -u <user-of-broker> -p <password-of-broker> &
+       PYTHONPATH=<path>/EnergyTrackingCaMeX-IA/Gateway-software:<path>/EnergyTrackingCaMeX-IA/Gateway-software/pyd7a python3 <path>/EnergyTrackingCaMeX-IA/Gateway-software/PIOWAY/PIOWAY.py -d <serial-port> -b <url-to-broker> -u <user-of-broker> -p <password-of-broker> -po <port> -c <client-id> -pr <project-id> -e <edge-node-id> -l /var/log/PIOWAY &
        # Get its PID and store it
        echo $! > ${PIDFILE} 
    ;;

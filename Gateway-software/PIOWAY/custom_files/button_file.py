@@ -17,6 +17,7 @@
 # limitations under the License.
 #
 import json
+import time
 
 from enum import Enum
 
@@ -60,7 +61,15 @@ class ButtonFile(File, Validatable):
     return ButtonFile(button_id=button_id, mask=mask, buttons_state=buttons_state)
 
   def generate_scorp_io_data(self, link_budget):
-    return None, None
+    timestamp = round( time.time() * 1000 ) # get time in milliseconds
+    data = {
+      "metrics" : [
+        { "name":"Bouton Pressé",               "dataType":"Boolean",    "timestamp":timestamp, "value":(self.buttons_state & ButtonStates.BUTTON1_PRESSED.value) > 0 },
+        { "name":"Force du signal radio DASH7", "dataType":"Short",      "timestamp":timestamp, "value":link_budget                                                   },
+      ]
+    }
+    data_json = json.dumps(data)
+    return data_json
   
   def __iter__(self):
     yield self.button_id
@@ -101,7 +110,7 @@ class ButtonConfigFile(File, Validatable):
     return ButtonConfigFile(transmit_mask_0=transmit_mask_0, transmit_mask_1=transmit_mask_1, button_control_menu=button_control_menu, enabled=enabled)
 
   def generate_scorp_io_data(self, link_budget):
-    return None, None
+    return None
   
   def __iter__(self):
     yield self.transmit_mask_0

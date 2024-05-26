@@ -110,8 +110,10 @@ class Modem2Mqtt():
     # self.mq.subscribe(self.mqtt_topic_outgoing)
     self.connected_to_mqtt = True
 
-    # # Test with example data
-    # hexstring = "20 34 00 40 61 00 01 02 03 04 05 06 07 08 09 00 01 02 03 04 05 06 07 08 09 00 01 02 03 04 05 06 07 08 09 00 01 02 03 04 05 06 07 08 09 00 01 02 03 04 05 06 07 08 09 00 01 02 03 04 05 06 07 08 09 00 01 02 03 04 05 06 07 08 09 00 01 02 03 04 05 06 07 08 09 00 01 02 03 04 05 06 07 08 09 00 01 02 03 04 05 06 62 D7 14 32 00 00 39 47 50 00 49 00 A9 20 01 32 36 36 30 00 39 00 4C".replace(" ","")
+    # # Test energy file
+    # hexstring = "20 34 00 40 43 00 01 02 03 04 05 06 07 08 09 00 01 02 03 04 05 06 07 08 09 00 01 02 03 04 05 06 07 08 09 00 01 02 03 04 05 06 07 08 09 00 01 02 03 04 05 06 07 08 09 00 01 02 03 04 05 06 07 08 09 00 01 02 03 04 05 06 62 D7 14 32 00 00 39 47 50 00 49 00 A9 20 01 32 36 36 30 00 39 00 4C".replace(" ","")
+    # # Test button file
+    # hexstring = "20 33 00 03 00 00 00 62 D7 14 32 00 00 39 47 50 00 49 00 A9 20 01 32 36 36 30 00 39 00 4C".replace(" ","")
     # data =bytearray(bytes.fromhex(hexstring))
     # self.on_command_received(AlpParser(custom_files_class=CustomFiles).parse(ConstBitStream(data), len(data)))
     
@@ -137,7 +139,7 @@ class Modem2Mqtt():
     try:
       transmitter = cmd.interface_status.operand.interface_status.addressee.id
       link_budget = cmd.interface_status.operand.interface_status.link_budget
-      transmitterHexString = hex(transmitter)[2:-1]
+      transmitterHexString = hex(transmitter).upper()[2:]
       operation = cmd.actions[0].operation
       if operation.file_type is None or operation.file_data_parsed is None:
         logging.info("received random data: {} from {}".format(operation.operand.data, transmitterHexString))
@@ -148,12 +150,15 @@ class Modem2Mqtt():
                                               parsedData, transmitterHexString))
 
       if fileType.__class__ in [ButtonFile, ButtonConfigFile, EnergyFile, EnergyConfigFile]:
-        config_json, data_json = parsedData.generate_scorp_io_data(link_budget)
+        data_json = parsedData.generate_scorp_io_data(link_budget)
+
+        if not data_json:
+          return
         
         # if we did not send anything for this end device yet, first send the config
         if transmitter not in self.known_transmitters:
           self.known_transmitters.append(transmitter)
-          self.mq.publish(f"mqtts/{self.config.project_id}/DBIRTH/{self.config.edge_node_id}/{transmitterHexString}", config_json, qos=1, retain=True)
+          self.mq.publish(f"mqtts/{self.config.project_id}/DBIRTH/{self.config.edge_node_id}/{transmitterHexString}", CustomFiles.global_sparkplug_config, qos=1, retain=True)
         
         self.mq.publish(f"mqtts/{self.config.project_id}/DDATA/{self.config.edge_node_id}/{transmitterHexString}", data_json, qos=1, retain=False)
         

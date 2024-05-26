@@ -26,11 +26,11 @@ from .custom_file_ids import CustomFileIds
 
 
 class EnergyFile(File, Validatable):
-  FILE_SIZE = 97
+  FILE_SIZE = 67
   SCHEMA = [{
     # "apparent_energy": Types.LIST(Types.INTEGER(min=-0x8000000000000000, max=0x7FFFFFFFFFFFFFFF)), # 3 phases int64
     # "real_energy": Types.LIST(Types.INTEGER(min=-0x8000000000000000, max=0x7FFFFFFFFFFFFFFF)), # 3 phases int64
-    # "current": Types.LIST(Types.INTEGER(min=-0x8000000000000000, max=0x7FFFFFFFFFFFFFFF)), # 3 phases int64
+    # "current": Types.LIST(Types.INTEGER(min=-0x80000000, max=0x7FFFFFFF)), # 3 phases int32
     # "voltage": Types.LIST(Types.INTEGER(min=-0x8000, max=0x7FFF)), # 3 phases int16
     # "measurement_valid": Types.BOOLEAN()
   }]
@@ -57,7 +57,7 @@ class EnergyFile(File, Validatable):
     for i in range(3):
       real_energy.append(s.read("intle:64"))
     for i in range(3):
-      current.append(s.read("intle:64"))
+      current.append(s.read("intle:32"))
     for i in range(3):
       voltage.append(s.read("intle:16"))
     measurement_valid = True if s.read("uint:8") else False
@@ -68,30 +68,25 @@ class EnergyFile(File, Validatable):
     timestamp = round( time.time() * 1000 ) # get time in milliseconds
     data = {
       "metrics" : [
-        { "Name":"Énergie apparante/phase 1",       "dataType":"Long",    "timestamp":timestamp, "value":self.apparent_energy[0] },
-        { "Name":"Énergie apparante/phase 2",       "dataType":"Long",    "timestamp":timestamp, "value":self.apparent_energy[1] },
-        { "Name":"Énergie apparante/phase 3",       "dataType":"Long",    "timestamp":timestamp, "value":self.apparent_energy[2] },
-        { "Name":"Énergie active/phase 1",          "dataType":"Long",    "timestamp":timestamp, "value":self.real_energy[0]     },
-        { "Name":"Énergie active/phase 2",          "dataType":"Long",    "timestamp":timestamp, "value":self.real_energy[1]     },
-        { "Name":"Énergie active/phase 3",          "dataType":"Long",    "timestamp":timestamp, "value":self.real_energy[2]     },
-        { "Name":"Courent/phase 1",                 "dataType":"Long",    "timestamp":timestamp, "value":self.current[0]         },
-        { "Name":"Courent/phase 2",                 "dataType":"Long",    "timestamp":timestamp, "value":self.current[1]         },
-        { "Name":"Courent/phase 3",                 "dataType":"Long",    "timestamp":timestamp, "value":self.current[2]         },
-        { "Name":"Voltage/phase 1",                 "dataType":"Short",   "timestamp":timestamp, "value":self.voltage[0]         },
-        { "Name":"Voltage/phase 2",                 "dataType":"Short",   "timestamp":timestamp, "value":self.voltage[1]         },
-        { "Name":"Voltage/phase 3",                 "dataType":"Short",   "timestamp":timestamp, "value":self.voltage[2]         },
-        { "Name":"Force du signal radio DASH7",     "dataType":"Short",   "timestamp":timestamp, "value":link_budget             },
-        { "Name":"État de la liaison Modbus/DASH7", "dataType":"Boolean", "timestamp":timestamp, "value":self.measurement_valid  },
+        { "name":"Énergie apparante/phase 1",         "dataType":"Long",    "timestamp":timestamp, "value":self.apparent_energy[0] },
+        { "name":"Énergie apparante/phase 2",         "dataType":"Long",    "timestamp":timestamp, "value":self.apparent_energy[1] },
+        { "name":"Énergie apparante/phase 3",         "dataType":"Long",    "timestamp":timestamp, "value":self.apparent_energy[2] },
+        { "name":"Énergie active/phase 1",            "dataType":"Long",    "timestamp":timestamp, "value":self.real_energy[0]     },
+        { "name":"Énergie active/phase 2",            "dataType":"Long",    "timestamp":timestamp, "value":self.real_energy[1]     },
+        { "name":"Énergie active/phase 3",            "dataType":"Long",    "timestamp":timestamp, "value":self.real_energy[2]     },
+        { "name":"Courent/phase 1",                   "dataType":"Integer", "timestamp":timestamp, "value":self.current[0]         },
+        { "name":"Courent/phase 2",                   "dataType":"Integer", "timestamp":timestamp, "value":self.current[1]         },
+        { "name":"Courent/phase 3",                   "dataType":"Integer", "timestamp":timestamp, "value":self.current[2]         },
+        { "name":"Voltage/phase 1",                   "dataType":"Short",   "timestamp":timestamp, "value":self.voltage[0]         },
+        { "name":"Voltage/phase 2",                   "dataType":"Short",   "timestamp":timestamp, "value":self.voltage[1]         },
+        { "name":"Voltage/phase 3",                   "dataType":"Short",   "timestamp":timestamp, "value":self.voltage[2]         },
+        { "name":"Force du signal radio DASH7",       "dataType":"Short",   "timestamp":timestamp, "value":link_budget             },
+        { "name":"État de la liaison Modbus - DASH7", "dataType":"Boolean", "timestamp":timestamp, "value":self.measurement_valid  },
       ]
     }
     data_json = json.dumps(data)
 
-    for metric in data["metrics"]:
-      metric.pop("timestamp")
-      metric.pop("value")
-    
-    config_json = json.dumps(data)
-    return config_json, data_json
+    return data_json
 
   def __iter__(self):
     for i in range(3):
@@ -101,7 +96,7 @@ class EnergyFile(File, Validatable):
       for byte in bytearray(struct.pack(">q", self.apparent_energy[i])):  # big endian long long
         yield byte
     for i in range(3):
-      for byte in bytearray(struct.pack(">q", self.current[i])):  # big endian long long
+      for byte in bytearray(struct.pack(">i", self.current[i])):  # big endian integer
         yield byte
     for i in range(3):
       for byte in bytearray(struct.pack(">h", self.voltage[i])):  # big endian short
@@ -134,7 +129,7 @@ class EnergyConfigFile(File, Validatable):
     return EnergyConfigFile(interval=interval, enabled=enabled)
 
   def generate_scorp_io_data(self, link_budget):
-    return None, None
+    return None
 
   def __iter__(self):
     for byte in bytearray(struct.pack(">I", self.interval)):
