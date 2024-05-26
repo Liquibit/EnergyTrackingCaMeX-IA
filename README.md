@@ -54,6 +54,7 @@ sudo git clone https://github.com/Liquibit/EnergyTrackingCaMeX-IA.git --recurse-
 sudo chmod +x /opt/EnergyTrackingCaMeX-IA/Gateway-software/os-config/gateway
 sudo ln -s /opt/EnergyTrackingCaMeX-IA/Gateway-software/os-config/gateway /bin/gateway
 sudo ln -s /opt/EnergyTrackingCaMeX-IA/Gateway-software/os-config/gateway.monit /etc/monit/conf.d/
+sudo chown root:root /opt/EnergyTrackingCaMeX-IA/Gateway-software/os-config/PIOWAY
 sudo ln -s /opt/EnergyTrackingCaMeX-IA/Gateway-software/os-config/PIOWAY /etc/logrotate.d/
 ```
 
