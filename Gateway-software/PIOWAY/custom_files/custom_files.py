@@ -17,20 +17,20 @@ class CustomFiles:
 
     global_sparkplug_config =  json.dumps({
       "metrics" : [
-        { "name":"Énergie apparante/phase 1",         "dataType":"Long"},
-        { "name":"Énergie apparante/phase 2",         "dataType":"Long"},
-        { "name":"Énergie apparante/phase 3",         "dataType":"Long"},
-        { "name":"Énergie active/phase 1",            "dataType":"Long"},
-        { "name":"Énergie active/phase 2",            "dataType":"Long"},
-        { "name":"Énergie active/phase 3",            "dataType":"Long"},
-        { "name":"Courent/phase 1",                   "dataType":"Integer"},
-        { "name":"Courent/phase 2",                   "dataType":"Integer"},
-        { "name":"Courent/phase 3",                   "dataType":"Integer"},
-        { "name":"Voltage/phase 1",                   "dataType":"Short"},
-        { "name":"Voltage/phase 2",                   "dataType":"Short"},
-        { "name":"Voltage/phase 3",                   "dataType":"Short"},
+        { "name":"Énergie apparente/Phase 1",         "dataType":"Long"},
+        { "name":"Énergie apparente/Phase 2",         "dataType":"Long"},
+        { "name":"Énergie apparente/Phase 3",         "dataType":"Long"},
+        { "name":"Énergie active/Phase 1",            "dataType":"Long"},
+        { "name":"Énergie active/Phase 2",            "dataType":"Long"},
+        { "name":"Énergie active/Phase 3",            "dataType":"Long"},
+        { "name":"Courant/Phase 1",                   "dataType":"Integer"},
+        { "name":"Courant/Phase 2",                   "dataType":"Integer"},
+        { "name":"Courant/Phase 3",                   "dataType":"Integer"},
+        { "name":"Tension/Phase 1",                   "dataType":"Short"},
+        { "name":"Tension/Phase 2",                   "dataType":"Short"},
+        { "name":"Tension/Phase 3",                   "dataType":"Short"},
         { "name":"Force du signal radio DASH7",       "dataType":"Short"},
-        { "name":"Bouton Pressé",                     "dataType":"Boolean"},
+        { "name":"Bouton pressé",                     "dataType":"Boolean"},
         { "name":"État de la liaison Modbus - DASH7", "dataType":"Boolean"},
       ]
     })
