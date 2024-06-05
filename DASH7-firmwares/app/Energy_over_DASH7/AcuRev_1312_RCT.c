@@ -29,6 +29,7 @@
 #include "hwuart.h"
 #include "mmodbus.h"
 #include "math.h"
+#include "hwsystem.h"
 
 #define MODBUS_MAX_RETRIES 10
 
@@ -73,6 +74,10 @@ static uart_handle_t* uart;
 #define Current_Phase_C_register 4170 // size 16 bit
 #define Current_Scale_Factor_register 4171 // -3 - 5
 
+#define Meter_Data_Reset_register 525  
+#define Communication_Revise_Operation_Authority_register 522 //0X02 : Meter Reset, Event Reset, Write Energy Data
+#define password_register 523 //default password 0
+#define new_password_register 524 //default password 0
 
 void acurev_1312_rct_init()
 {
@@ -84,83 +89,108 @@ void acurev_1312_rct_init()
     mmodbus_init(modbus_timeout);
     mmodbus_set32bitOrder(MModBus_32bitOrder_CDAB);
     DPRINT("acurev inited");
+    // acurev_reset_meter_record();
 }
 
 bool acurev_get_real_energy(int64_t *real_energy_a, int64_t *real_energy_b, int64_t *real_energy_c)
 {
-    uint32_t data_a, data_b, data_c;
+    uint32_t data[4];  // Array to store all 32-bit register values (3 energy registers + 1 scale factor register)
     uint16_t raw_scale;
     int16_t scale;
     bool success = false;
     uint8_t retry_counter = 0;
     while (!success && retry_counter <= MODBUS_MAX_RETRIES)
     {
-        success = mmodbus_readHoldingRegister32i(device_address, Total_Real_Energy_Phase_A_register, &data_a);
-        success &= mmodbus_readHoldingRegister32i(device_address, Total_Real_Energy_Phase_B_register, &data_b);
-        success &= mmodbus_readHoldingRegister32i(device_address, Total_Real_Energy_Phase_C_register, &data_c);
-        success &= mmodbus_readHoldingRegister16i(device_address, Real_Energy_Scale_Factor_register, &raw_scale);
-        // Transform raw scale to signed integer
-        scale = (int16_t)raw_scale;
-        *real_energy_a = (int64_t)((int32_t)data_a * pow(10, (int16_t)scale + 3));
-        *real_energy_b = (int64_t)((int32_t)data_b * pow(10, (int16_t)scale + 3));
-        *real_energy_c = (int64_t)((int32_t)data_c * pow(10, (int16_t)scale + 3));
+        // Read all registers in a single call
+        success = mmodbus_readHoldingRegisters32i(device_address, Total_Real_Energy_Phase_A_register, 4, data);
+        
+        if (success)
+        {
+            raw_scale = data[3] >> 16;
+            scale = (int16_t)raw_scale;
+
+            *real_energy_a = (int64_t)((int32_t)data[0] * pow(10, (int16_t)scale + 3));
+            *real_energy_b = (int64_t)((int32_t)data[1] * pow(10, (int16_t)scale + 3));
+            *real_energy_c = (int64_t)((int32_t)data[2] * pow(10, (int16_t)scale + 3));
+        }
+        else
+        {
+            hw_busy_wait(3000);
+        }
+
         retry_counter++;
         DPRINT("Attempt %d: Raw Data A: %d, Raw Data B: %d, Raw Data C: %d, Raw Scale: %d, Scale: %d, real_energy A: %d, real_energy B: %d, real_energy C: %d", 
-        retry_counter + 1, data_a, data_b, data_c, raw_scale, scale, *real_energy_a, *real_energy_b, *real_energy_c); 
+        retry_counter, data[0], data[1], data[2], data[3], scale, (int32_t)*real_energy_a, (int32_t)*real_energy_b, (int32_t)*real_energy_c); 
     }
     return success;
 }
+
 
 bool acurev_get_apparent_energy(int64_t *apparent_energy_a, int64_t *apparent_energy_b, int64_t *apparent_energy_c)
 {
-    uint32_t data_a, data_b, data_c;
-    uint16_t raw_scale;
+    uint32_t data[4];  // Array to store all 32-bit register values (3 energy registers + 1 scale factor register)
     int16_t scale;
+    uint16_t raw_scale;
     bool success = false;
     uint8_t retry_counter = 0;
     while (!success && retry_counter <= MODBUS_MAX_RETRIES)
     {
-        success = mmodbus_readHoldingRegister32i(device_address, Total_Apparent_Energy_Phase_A_register, &data_a);
-        success &= mmodbus_readHoldingRegister32i(device_address, Total_Apparent_Energy_Phase_B_register, &data_b);
-        success &= mmodbus_readHoldingRegister32i(device_address, Total_Apparent_Energy_Phase_C_register, &data_c);
-        success &= mmodbus_readHoldingRegister16i(device_address, Apparent_Energy_Scale_Factor_register, &raw_scale);
+        // Read all registers in a single call
+        success = mmodbus_readHoldingRegisters32i(device_address, Total_Apparent_Energy_Phase_A_register, 4, data);
+        
+        if (success)
+        {
+            // Transform raw scale to signed integer
+            raw_scale = data[3] >> 16;
+            scale = (int16_t)raw_scale;
 
-        // Transform raw scale to signed integer
-        scale = (int16_t)raw_scale;
+            *apparent_energy_a = (int64_t)((int32_t)data[0] * pow(10, (int16_t)scale + 3));
+            *apparent_energy_b = (int64_t)((int32_t)data[1] * pow(10, (int16_t)scale + 3));
+            *apparent_energy_c = (int64_t)((int32_t)data[2] * pow(10, (int16_t)scale + 3));
+        }
+        else
+        {
+            hw_busy_wait(3000);
+        }
 
-        *apparent_energy_a = (int64_t)((int32_t)data_a * pow(10, (int16_t)scale + 3));
-        *apparent_energy_b = (int64_t)((int32_t)data_b * pow(10, (int16_t)scale + 3));
-        *apparent_energy_c = (int64_t)((int32_t)data_c * pow(10, (int16_t)scale + 3));
+
         retry_counter++;
         DPRINT("Attempt %d: Raw Data A: %d, Raw Data B: %d, Raw Data C: %d, Raw Scale: %d, Scale: %d, apparent_energy A: %d, apparent_energy B: %d, apparent_energy C: %d", 
-        retry_counter + 1, data_a, data_b, data_c, raw_scale, scale, *apparent_energy_a, *apparent_energy_b, *apparent_energy_c);
+        retry_counter, data[0], data[1], data[2], data[3], scale, (int32_t)*apparent_energy_a, (int32_t)*apparent_energy_b, (int32_t)*apparent_energy_c); 
     }
     return success;
 }
+
 
 bool acurev_get_voltage(int16_t *voltage_a, int16_t *voltage_b, int16_t *voltage_c)
 {
-    uint16_t data_a, data_b, data_c, raw_scale;
+    uint16_t data[8];  // Array to store all 16-bit register values (3 voltage registers + 4 unused registers + 1 scale register)
     int16_t scale;
     bool success = false;
     uint8_t retry_counter = 0;
 
     while (!success && retry_counter <= MODBUS_MAX_RETRIES)
     {
-        success = mmodbus_readHoldingRegister16i(device_address, Voltage_Phase_A_register, &data_a);
-        success &= mmodbus_readHoldingRegister16i(device_address, Voltage_Phase_B_register, &data_b);
-        success &= mmodbus_readHoldingRegister16i(device_address, Voltage_Phase_C_register, &data_c);
-        success &= mmodbus_readHoldingRegister16i(device_address, Voltage_Scale_Factor_register, &raw_scale);
+        // Read voltage registers and the scale register together
+        success = mmodbus_readHoldingRegisters16i(device_address, Voltage_Phase_A_register, 8, data);
+        
+        if (success)
+        {
+            // Transform raw scale to signed integer
+            scale = (int16_t)data[7];
 
-        // Transform raw scale to signed integer
-        scale = (int16_t)raw_scale;
+            *voltage_a = (int16_t)(data[0] * pow(10, scale));
+            *voltage_b = (int16_t)(data[1] * pow(10, scale));
+            *voltage_c = (int16_t)(data[2] * pow(10, scale));
 
-        *voltage_a = (int16_t)(data_a * pow(10, scale));
-        *voltage_b = (int16_t)(data_b * pow(10, scale));
-        *voltage_c = (int16_t)(data_c * pow(10, scale));
+            DPRINT("Attempt %d: Raw Data A: %d, Raw Data B: %d, Raw Data C: %d, Raw Scale: %d, Scale: %d, Voltage A: %d, Voltage B: %d, Voltage C: %d", 
+                   retry_counter + 1, data[0], data[1], data[2], data[7], scale, *voltage_a, *voltage_b, *voltage_c);
+        }
+        else
+        {
+            hw_busy_wait(3000);
+        }
 
-        DPRINT("Attempt %d: Raw Data A: %d, Raw Data B: %d, Raw Data C: %d, Raw Scale: %d, Scale: %d, Voltage A: %d, Voltage B: %d, Voltage C: %d", 
-               retry_counter + 1, data_a, data_b, data_c, raw_scale, scale, *voltage_a, *voltage_b, *voltage_c);
 
         retry_counter++;
     }
@@ -168,30 +198,55 @@ bool acurev_get_voltage(int16_t *voltage_a, int16_t *voltage_b, int16_t *voltage
     return success;
 }
 
+
 bool acurev_get_current(int32_t *current_a, int32_t *current_b, int32_t *current_c)
 {
-    uint16_t data_a, data_b, data_c, scale;
+    uint16_t data[4];  // Array to store all 16-bit register values (3 current registers + 1 scale register)
+    int16_t scale;
     bool success = false;
     uint8_t retry_counter = 0;
 
     while (!success && retry_counter <= MODBUS_MAX_RETRIES)
     {
-        success = mmodbus_readHoldingRegister16i(device_address, Current_Phase_A_register, &data_a);
-        success &= mmodbus_readHoldingRegister16i(device_address, Current_Phase_B_register, &data_b);
-        success &= mmodbus_readHoldingRegister16i(device_address, Current_Phase_C_register, &data_c);
-        success &= mmodbus_readHoldingRegister16i(device_address, Current_Scale_Factor_register, &scale);
+        // Read current registers and the scale register together
+        success = mmodbus_readHoldingRegisters16i(device_address, Current_Phase_A_register, 4, data);
+        
+        if (success)
+        {
+            // Transform raw scale to signed integer
+            scale = (int16_t)data[3];
 
-        *current_a = (int32_t)( (int16_t)data_a * pow(10, ((int16_t)scale) + 3));
-        *current_b = (int32_t)( (int16_t)data_b * pow(10, ((int16_t)scale) + 3));
-        *current_c = (int32_t)( (int16_t)data_c * pow(10, ((int16_t)scale) + 3));
+            *current_a = (int32_t)( (int16_t)data[0] * pow(10, scale + 3));
+            *current_b = (int32_t)( (int16_t)data[1] * pow(10, scale + 3));
+            *current_c = (int32_t)( (int16_t)data[2] * pow(10, scale + 3));
 
-        DPRINT("Attempt %d: Raw Data A: %d, Raw Data B: %d, Raw Data C: %d, Scale: %d, Current A: %d, Current B: %d, Current C: %d", 
-               retry_counter + 1, data_a, data_b, data_c, scale, *current_a, *current_b, *current_c);
-
-
+            DPRINT("Attempt %d: Raw Data A: %d, Raw Data B: %d, Raw Data C: %d, raw Scale: %d, Scale: %d, Current A: %d, Current B: %d, Current C: %d", 
+                   retry_counter + 1, data[0], data[1], data[2], data[3], scale, *current_a, *current_b, *current_c);
+        }
+        else
+        {
+            hw_busy_wait(3000);
+        }
         retry_counter++;
     }
 
     return success;
 }
 
+bool acurev_gain_write_permission()
+{
+    bool success = true;
+    uint16_t data[] = {0x02, 0, 0,0};
+    success= mmodbus_writeHoldingRegisters16i_length2(device_address, Communication_Revise_Operation_Authority_register, data);
+    log_print_string("1written reset register %d", success);
+    return success;
+}
+
+bool acurev_reset_meter_record()
+{
+    bool success = true; 
+    uint16_t data2[] = {0,0xFF}; // reset all data
+    success= mmodbus_writeHoldingRegisters16i_length2(device_address, new_password_register, data2);
+    log_print_string("2written reset register %d", success);
+    return success;
+}

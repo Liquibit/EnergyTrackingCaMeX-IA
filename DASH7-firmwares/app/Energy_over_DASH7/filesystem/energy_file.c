@@ -81,12 +81,26 @@ static energy_file_t energy_file;
 
 static void file_modified_callback(uint8_t file_id);
 void energy_file_execute_measurement();
+void measure_acurev_data();
 
 static energy_config_file_t energy_config_file_cached
-    = (energy_config_file_t) { .interval =  60 * 5, .enabled = true };
+    = (energy_config_file_t) { .interval = 10, .enabled = true };
 
 static bool energy_file_transmit_state = false;
 static bool energy_config_file_transmit_state = false;
+
+typedef enum {
+    MEASURING_REAL_ENERGY = 0,
+    MEASURING_APPARENT_ENERGY = 1,
+    MEASURING_VOLTAGE = 2,
+    MEASURING_CURRENT = 3,
+    MEASURING_DONE = 4,
+} measurement_state_t;
+
+static measurement_state_t measurement_state = MEASURING_DONE;
+bool current_measurement_valid = true;
+
+
 
 /**
  * @brief Initialize the energy file and energy config file
@@ -132,6 +146,7 @@ error_t energy_files_initialize()
     d7ap_fs_register_file_modified_callback(ENERGY_CONFIG_FILE_ID, &file_modified_callback);
     d7ap_fs_register_file_modified_callback(ENERGY_FILE_ID, &file_modified_callback);
     sched_register_task(&energy_file_execute_measurement);
+    sched_register_task(&measure_acurev_data);
     DPRINT("energy file inited");
     return ret;
 }
@@ -171,17 +186,44 @@ void energy_file_transmit_config_file()
 
 void energy_file_execute_measurement()
 {
+    if(measurement_state == MEASURING_DONE)
+    {
+        measurement_state = MEASURING_REAL_ENERGY;
+        current_measurement_valid = true;
+        measure_acurev_data();
+    }
+}
+
+void measure_acurev_data()
+{
     DPRINT("executing energy measurement");
-    bool measurement_valid = true;
-
-    measurement_valid &= acurev_get_real_energy(&energy_file.real_energy_a, &energy_file.real_energy_b, &energy_file.real_energy_c);
-    measurement_valid &= acurev_get_apparent_energy(&energy_file.apparent_energy_a, &energy_file.apparent_energy_b, &energy_file.apparent_energy_c);
-    measurement_valid &= acurev_get_voltage(&energy_file.voltage_a, &energy_file.voltage_b, &energy_file.voltage_c);
-    measurement_valid &= acurev_get_current(&energy_file.current_a, &energy_file.current_b, &energy_file.current_c);
-
-    energy_file.measurement_valid = measurement_valid;
-
-    d7ap_fs_write_file(ENERGY_FILE_ID, 0, energy_file.bytes, sizeof(energy_file), ROOT_AUTH);
+    
+    if(measurement_state == MEASURING_REAL_ENERGY)
+    {
+        current_measurement_valid &= acurev_get_real_energy(&energy_file.real_energy_a, &energy_file.real_energy_b, &energy_file.real_energy_c);
+        measurement_state = MEASURING_APPARENT_ENERGY;
+        timer_post_task_delay(&measure_acurev_data, 50);
+    }
+    else if(measurement_state == MEASURING_APPARENT_ENERGY)
+    {
+        current_measurement_valid &= acurev_get_apparent_energy(&energy_file.apparent_energy_a, &energy_file.apparent_energy_b, &energy_file.apparent_energy_c);
+        measurement_state = MEASURING_VOLTAGE;
+        timer_post_task_delay(&measure_acurev_data, 50);
+    }
+    else if(measurement_state == MEASURING_VOLTAGE)
+    {
+        current_measurement_valid &= acurev_get_voltage(&energy_file.voltage_a, &energy_file.voltage_b, &energy_file.voltage_c);
+        measurement_state = MEASURING_CURRENT;
+        timer_post_task_delay(&measure_acurev_data, 50);
+    }
+    else if(measurement_state == MEASURING_CURRENT)
+    {
+        current_measurement_valid &= acurev_get_current(&energy_file.current_a, &energy_file.current_b, &energy_file.current_c);
+        energy_file.measurement_valid = current_measurement_valid;
+        d7ap_fs_write_file(ENERGY_FILE_ID, 0, energy_file.bytes, sizeof(energy_file), ROOT_AUTH);
+        measurement_state = MEASURING_DONE;
+    }
+    
 }
 
 

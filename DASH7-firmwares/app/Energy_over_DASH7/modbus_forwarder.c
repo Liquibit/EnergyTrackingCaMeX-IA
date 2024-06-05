@@ -29,6 +29,7 @@
 #include "log.h"
 #include "scheduler.h"
 #include "energy_file.h"
+#include "d7ap_fs.h"
 
 #define FRAMEWORK_APP_LOG 1
 #ifdef FRAMEWORK_APP_LOG
@@ -63,6 +64,10 @@ void bootstrap()
 
 
     led_flash(1);
+
+    uint8_t uid[8];
+    d7ap_fs_read_uid(uid);
+    log_print_string("UID %02X%02X%02X%02X%02X%02X%02X%02X\n", uid[0], uid[1], uid[2], uid[3], uid[4], uid[5], uid[6], uid[7]);
 
     log_print_string("Device booted\n");
 
