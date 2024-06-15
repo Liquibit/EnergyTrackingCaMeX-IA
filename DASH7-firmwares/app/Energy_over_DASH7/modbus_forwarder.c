@@ -62,13 +62,19 @@ void bootstrap()
     energy_files_initialize();
     energy_file_set_measure_state(true);
 
-
     led_flash(1);
 
     uint8_t uid[8];
     d7ap_fs_read_uid(uid);
     log_print_string("UID %02X%02X%02X%02X%02X%02X%02X%02X\n", uid[0], uid[1], uid[2], uid[3], uid[4], uid[5], uid[6], uid[7]);
 
+    buttons_state_t booted_button_state = button_get_booted_state();
+
+    if(booted_button_state == BUTTON1_PRESSED)
+    {
+        log_print_string("button pressed on boot, resetting energy meter data");
+        energy_file_reset_accumulated_energy_data();
+    }
     log_print_string("Device booted\n");
 
 }

@@ -36,8 +36,8 @@ bool acurev_get_real_energy(int64_t *real_energy_a, int64_t *real_energy_b, int6
 bool acurev_get_apparent_energy(int64_t *apparent_energy_a, int64_t *apparent_energy_b, int64_t *apparent_energy_c);
 bool acurev_get_voltage(int16_t *voltage_a, int16_t *voltage_b, int16_t *voltage_c);
 bool acurev_get_current(int32_t *current_a, int32_t *current_b, int32_t *current_c);
-bool acurev_gain_write_permission();
-bool acurev_reset_meter_record();
+void acurev_gain_write_permission();
+void acurev_reset_meter_record();
 
 
 #endif //__ACUREF_1312_RCT_H

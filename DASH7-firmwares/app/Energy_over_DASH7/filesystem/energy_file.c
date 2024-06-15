@@ -84,7 +84,7 @@ void energy_file_execute_measurement();
 void measure_acurev_data();
 
 static energy_config_file_t energy_config_file_cached
-    = (energy_config_file_t) { .interval = 10, .enabled = true };
+    = (energy_config_file_t) { .interval = 10 * 60, .enabled = true };
 
 static bool energy_file_transmit_state = false;
 static bool energy_config_file_transmit_state = false;
@@ -186,12 +186,9 @@ void energy_file_transmit_config_file()
 
 void energy_file_execute_measurement()
 {
-    if(measurement_state == MEASURING_DONE)
-    {
-        measurement_state = MEASURING_REAL_ENERGY;
-        current_measurement_valid = true;
-        measure_acurev_data();
-    }
+    measurement_state = MEASURING_REAL_ENERGY;
+    current_measurement_valid = true;
+    measure_acurev_data();
 }
 
 void measure_acurev_data()
@@ -223,7 +220,6 @@ void measure_acurev_data()
         d7ap_fs_write_file(ENERGY_FILE_ID, 0, energy_file.bytes, sizeof(energy_file), ROOT_AUTH);
         measurement_state = MEASURING_DONE;
     }
-    
 }
 
 
@@ -257,4 +253,10 @@ void energy_file_set_interval(uint32_t interval)
         d7ap_fs_write_file(ENERGY_CONFIG_FILE_ID, 0, energy_config_file_cached.bytes,
             ENERGY_CONFIG_FILE_SIZE, ROOT_AUTH);
     }
+}
+
+void energy_file_reset_accumulated_energy_data()
+{
+    timer_post_task_delay(&acurev_gain_write_permission, 5 * TIMER_TICKS_PER_SEC);
+    timer_post_task_delay(&acurev_reset_meter_record, 7 * TIMER_TICKS_PER_SEC);
 }

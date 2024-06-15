@@ -30,6 +30,7 @@
 #include "mmodbus.h"
 #include "math.h"
 #include "hwsystem.h"
+#include "timer.h"
 
 #define MODBUS_MAX_RETRIES 10
 
@@ -89,7 +90,8 @@ void acurev_1312_rct_init()
     mmodbus_init(modbus_timeout);
     mmodbus_set32bitOrder(MModBus_32bitOrder_CDAB);
     DPRINT("acurev inited");
-    // acurev_reset_meter_record();
+    sched_register_task(&acurev_gain_write_permission);
+    sched_register_task(&acurev_reset_meter_record);
 }
 
 bool acurev_get_real_energy(int64_t *real_energy_a, int64_t *real_energy_b, int64_t *real_energy_c)
@@ -233,20 +235,43 @@ bool acurev_get_current(int32_t *current_a, int32_t *current_b, int32_t *current
     return success;
 }
 
-bool acurev_gain_write_permission()
+void acurev_gain_write_permission()
 {
-    bool success = true;
-    uint16_t data[] = {0x02, 0, 0,0};
-    success= mmodbus_writeHoldingRegisters16i_length2(device_address, Communication_Revise_Operation_Authority_register, data);
-    log_print_string("1written reset register %d", success);
-    return success;
+    bool success = false;
+    uint16_t data[] = {0x02, 0}; //gain permission for resetting data
+    uint8_t retry_counter = 0;
+
+    while (!success && retry_counter <= MODBUS_MAX_RETRIES)
+    {
+        success = mmodbus_writeHoldingRegisters16i_length2(device_address, Communication_Revise_Operation_Authority_register, data);
+        if (success)
+            log_print_string("Attempt %d: Written reset register %d", retry_counter + 1, success);
+        else
+            hw_busy_wait(3000);
+        retry_counter++;
+    }
+    if (!success)
+        log_print_string("Failed to write reset register after %d attempts", MODBUS_MAX_RETRIES);
 }
 
-bool acurev_reset_meter_record()
+void acurev_reset_meter_record()
 {
-    bool success = true; 
-    uint16_t data2[] = {0,0xFF}; // reset all data
-    success= mmodbus_writeHoldingRegisters16i_length2(device_address, new_password_register, data2);
-    log_print_string("2written reset register %d", success);
-    return success;
+    bool success = false; 
+    uint16_t data2[] = {0, 0xFF}; // reset all data
+    uint8_t retry_counter = 0;
+
+    while (!success && retry_counter <= MODBUS_MAX_RETRIES)
+    {
+        success = mmodbus_writeHoldingRegisters16i_length2(device_address, new_password_register, data2);
+        
+        if (success)
+            log_print_string("Attempt %d: Written reset register %d", retry_counter + 1, success);
+        else
+            hw_busy_wait(3000);
+        
+        retry_counter++;
+    }
+
+    if (!success)
+        log_print_string("Failed to write reset register after %d attempts", MODBUS_MAX_RETRIES);
 }
