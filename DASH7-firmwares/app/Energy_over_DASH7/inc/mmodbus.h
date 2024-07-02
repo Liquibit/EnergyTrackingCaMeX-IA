@@ -48,6 +48,7 @@
 #include  <string.h>
 #include  <stdio.h>
 #include "stm32_device.h"
+#include "hwuart.h"
 
 #if _MMODBUS_FREERTOS == 1
 #include  "cmsis_os.h"
@@ -105,7 +106,7 @@ typedef struct
 //##################################################################################################
 
 void    mmodbus_callback(void);
-void modbus_callback_stack(uint8_t data);
+void    modbus_callback_stack(uart_handle_t* uart, uint8_t data);
 void    mmodbus_callback_txDMA(void);
 bool    mmodbus_init(uint32_t setTimeout);
 void    mmodbus_set16bitOrder(MModBus_16bitOrder_t MModBus_16bitOrder_);
@@ -135,6 +136,7 @@ bool    mmodbus_writeCoil(uint8_t slaveAddress, uint16_t number, uint8_t data);
 //  holding register 40001 to 49999
 bool    mmodbus_writeHoldingRegister16i(uint8_t slaveAddress, uint16_t number, uint16_t data);
 bool    mmodbus_writeHoldingRegisters16i(uint8_t slaveAddress, uint16_t startnumber, uint16_t length, uint16_t *data);
+bool mmodbus_writeHoldingRegisters16i_length2(uint8_t slaveAddress, uint16_t startnumber, uint16_t *data);
 
 //##################################################################################################
 #endif

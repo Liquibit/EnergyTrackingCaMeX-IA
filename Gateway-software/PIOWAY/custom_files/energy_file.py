@@ -18,7 +18,7 @@
 #
 import struct
 import json
-import datetime
+import time
 
 from pyd7a.d7a.support.schema import Validatable, Types
 from pyd7a.d7a.system_files.file import File
@@ -26,116 +26,95 @@ from .custom_file_ids import CustomFileIds
 
 
 class EnergyFile(File, Validatable):
-  FILE_SIZE = 17
+  FILE_SIZE = 67
   SCHEMA = [{
-    "real_energy": Types.INTEGER(min=-0x8000000000000000, max=0x7FFFFFFFFFFFFFFF),  # int64
-    "apparent_energy": Types.INTEGER(min=-0x8000000000000000, max=0x7FFFFFFFFFFFFFFF),  # int64
-    "measurement_valid": Types.BOOLEAN()
+    # "apparent_energy": Types.LIST(Types.INTEGER(min=-0x8000000000000000, max=0x7FFFFFFFFFFFFFFF)), # 3 phases int64
+    # "real_energy": Types.LIST(Types.INTEGER(min=-0x8000000000000000, max=0x7FFFFFFFFFFFFFFF)), # 3 phases int64
+    # "current": Types.LIST(Types.INTEGER(min=-0x80000000, max=0x7FFFFFFF)), # 3 phases int32
+    # "voltage": Types.LIST(Types.INTEGER(min=-0x8000, max=0x7FFF)), # 3 phases int16
+    # "measurement_valid": Types.BOOLEAN()
   }]
 
 
-  def __init__(self, real_energy=0, apparent_energy=0, measurement_valid=True):
-    self.real_energy = real_energy
+  def __init__(self, real_energy=[], apparent_energy=[], current=[], voltage=[], measurement_valid=True):
     self.apparent_energy = apparent_energy
+    self.real_energy = real_energy
+    self.current = current
+    self.voltage = voltage
     self.measurement_valid = measurement_valid
     File.__init__(self, CustomFileIds.ENERGY.value, self.FILE_SIZE)
     Validatable.__init__(self)
 
   @staticmethod
   def parse(s, offset=0, length=FILE_SIZE):
-    real_energy = s.read("intle:64")
-    apparent_energy = s.read("intle:64")
+    apparent_energy = []
+    real_energy = []
+    current = []
+    voltage = []
+
+    for i in range(3):
+      apparent_energy.append(s.read("intle:64"))
+    for i in range(3):
+      real_energy.append(s.read("intle:64"))
+    for i in range(3):
+      current.append(s.read("intle:32"))
+    for i in range(3):
+      voltage.append(s.read("intle:16"))
     measurement_valid = True if s.read("uint:8") else False
-    return EnergyFile(real_energy=real_energy, apparent_energy=apparent_energy, measurement_valid=measurement_valid)
+
+    return EnergyFile(real_energy=real_energy, apparent_energy=apparent_energy, current=current, voltage=voltage, measurement_valid=measurement_valid)
   
-  def generate_home_assistant_data(self, device):
-    mqtt_content = []
-    dict = {'RealEnergy':self.real_energy, 'ApparentEnergy':self.apparent_energy, 'MeasurementValid':self.measurement_valid}
-    for key, value in dict.items():
-      content={}
-      unique_id = '{}_{}'.format(device['ids'][0], key)
-      component = 'binary_sensor' if isinstance(value, bool) else 'sensor'
-
-      content['state_topic']='homeassistant/{}/{}/state'.format(component, unique_id)
-      content['config_topic']='homeassistant/{}/{}/config'.format(component, unique_id)
-
-      config = {
-        'device': device,
-        # 'icon': we could choose a custom icon
-        # 'json_attributes_topic': ?
-        'name': key,
-        'qos': 1,
-        'unique_id': unique_id,
-        'state_topic': content['state_topic']
-      }
-      if component is 'sensor':
-        config['dev_cla']= 'energy'
-        config['stat_cla']= 'measurement'
-        config['unit_of_meas']= 'Wh'
-      
-      content['config'] = json.dumps(config)
-
-      if component is 'sensor':
-        content['state'] = value
-      else:
-        content['state'] = 'ON' if value else 'OFF'
-
-      mqtt_content.append(content)
-    return mqtt_content
-
-  def generate_mindsphere_data(self, link_budget):
-    dict = {
-      "timeseries": [
-        {
-          "timestamp":datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
-          "values":[
-            {
-              "dataPointId":"realEnergy",
-              "value":self.real_energy,
-              "qualityCode": "0"
-            },
-            {
-              "dataPointId":"apparentEnergy",
-              "value":self.apparent_energy,
-              "qualityCode": "0"
-            },
-            {
-              "dataPointId":"validEnergy",
-              "value": "true" if self.measurement_valid else "false",
-              "qualityCode": "0"
-            },
-            {
-              "dataPointId":"dataPoint4",
-              "value":link_budget,
-              "qualityCode": "0"
-            }
-          ]
-        }
+  def generate_scorp_io_data(self, link_budget):
+    timestamp = round( time.time() * 1000 ) # get time in milliseconds
+    data = {
+      "metrics" : [
+        { "name":"Énergie apparente/Phase 1",         "dataType":"Long",    "timestamp":timestamp, "value":self.apparent_energy[0] },
+        { "name":"Énergie apparente/Phase 2",         "dataType":"Long",    "timestamp":timestamp, "value":self.apparent_energy[1] },
+        { "name":"Énergie apparente/Phase 3",         "dataType":"Long",    "timestamp":timestamp, "value":self.apparent_energy[2] },
+        { "name":"Énergie active/Phase 1",            "dataType":"Long",    "timestamp":timestamp, "value":self.real_energy[0]     },
+        { "name":"Énergie active/Phase 2",            "dataType":"Long",    "timestamp":timestamp, "value":self.real_energy[1]     },
+        { "name":"Énergie active/Phase 3",            "dataType":"Long",    "timestamp":timestamp, "value":self.real_energy[2]     },
+        { "name":"Intensité/Phase 1",                 "dataType":"Integer", "timestamp":timestamp, "value":self.current[0]         },
+        { "name":"Intensité/Phase 2",                 "dataType":"Integer", "timestamp":timestamp, "value":self.current[1]         },
+        { "name":"Intensité/Phase 3",                 "dataType":"Integer", "timestamp":timestamp, "value":self.current[2]         },
+        { "name":"Tension/Phase 1",                   "dataType":"Short",   "timestamp":timestamp, "value":self.voltage[0]         },
+        { "name":"Tension/Phase 2",                   "dataType":"Short",   "timestamp":timestamp, "value":self.voltage[1]         },
+        { "name":"Tension/Phase 3",                   "dataType":"Short",   "timestamp":timestamp, "value":self.voltage[2]         },
+        { "name":"Force du signal radio DASH7",       "dataType":"Short",   "timestamp":timestamp, "value":link_budget             },
+        { "name":"État de la liaison Modbus - DASH7", "dataType":"Boolean", "timestamp":timestamp, "value":self.measurement_valid  },
       ]
     }
-    return json.dumps(dict)
+    data_json = json.dumps(data)
+
+    return data_json
 
   def __iter__(self):
-    for byte in bytearray(struct.pack(">q", self.real_energy)):  # big endian long long
-      yield byte
-    for byte in bytearray(struct.pack(">q", self.apparent_energy)):  # big endian long long
-      yield byte
+    for i in range(3):
+      for byte in bytearray(struct.pack(">q", self.real_energy[i])):  # big endian long long
+        yield byte
+    for i in range(3):
+      for byte in bytearray(struct.pack(">q", self.apparent_energy[i])):  # big endian long long
+        yield byte
+    for i in range(3):
+      for byte in bytearray(struct.pack(">i", self.current[i])):  # big endian integer
+        yield byte
+    for i in range(3):
+      for byte in bytearray(struct.pack(">h", self.voltage[i])):  # big endian short
+        yield byte
     yield self.measurement_valid
 
 
   def __str__(self):
-    return "real_energy={}, apparent_energy={}, measurement_valid={}".format(
-      self.real_energy, self.apparent_energy, self.measurement_valid
+    return "real_energy={}, apparent_energy={}, current={}, voltage={}, measurement_valid={}".format(
+      self.real_energy, self.apparent_energy, self.current, self.voltage, self.measurement_valid
     )
 
 class EnergyConfigFile(File, Validatable):
-  FILE_SIZE = 17
+  FILE_SIZE = 5
   SCHEMA = [{
     "interval": Types.INTEGER(min=-0, max=0xFFFFFFFF),  # uint32
     "enabled": Types.BOOLEAN()
   }]
-  component = 'sensor'
-
 
   def __init__(self, interval=0, enabled=True):
     self.interval = interval
@@ -148,43 +127,8 @@ class EnergyConfigFile(File, Validatable):
     interval = s.read("uint:32")
     enabled = True if s.read("uint:8") else False
     return EnergyConfigFile(interval=interval, enabled=enabled)
-  
-  def generate_home_assistant_data(self, device):
-    mqtt_content = []
-    dict = {'Interval':self.interval, 'Enabled':self.enabled}
-    for key, value in dict.items():
-      content={}
-      unique_id = '{}_{}'.format(device['ids'][0], key)
-      component = 'binary_sensor' if isinstance(value, bool) else 'sensor'
 
-      content['state_topic']='homeassistant/{}/{}/state'.format(component, unique_id)
-      content['config_topic']='homeassistant/{}/{}/config'.format(component, unique_id)
-
-      config = {
-        'device': device,
-        # 'icon': we could choose a custom icon
-        # 'json_attributes_topic': ?
-        'name': key,
-        'qos': 1,
-        'unique_id': unique_id,
-        'state_topic': content['state_topic']
-      }
-      if component is 'sensor':
-        config['dev_cla']= 'duration'
-        config['unit_of_meas']= 's'
-        config['ent_cat']= 'diagnostic'
-      
-      content['config'] = json.dumps(config)
-
-      if component is 'sensor':
-        content['state'] = value
-      else:
-        content['state'] = 'ON' if value else 'OFF'
-
-      mqtt_content.append(content)
-    return mqtt_content
-
-  def generate_mindsphere_data(self, link_budget):
+  def generate_scorp_io_data(self, link_budget):
     return None
 
   def __iter__(self):

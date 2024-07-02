@@ -160,7 +160,7 @@ error_t transmit_file(uint8_t file_id, uint32_t offset, uint32_t length, uint8_t
     // alloc command. This will be freed when the command completes
     alp_command_t* command = alp_layer_command_alloc(true, true); 
     // forward to the D7 interface
-    ret = alp_append_forward_action(command, (alp_interface_config_t*)&itf_config, sizeof(itf_config)); 
+    ret = alp_append_forward_action(command, (alp_interface_config_t*)&itf_config, d7ap_session_config_length(&itf_config.d7ap_session_config)); 
     // add the return file data action
     ret = alp_append_return_file_data_action(command, file_id, offset, length, data); 
     // and finally execute this

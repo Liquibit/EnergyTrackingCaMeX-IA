@@ -1,0 +1,35 @@
+Comment;Description;Designator;Footprint;Quantity
+;;;;
+SKSGACE010;Keypad Switch, 1 Switches, SPST, Momentary-tactile, 0.05A, 12VDC, 1.6N, Solder Terminal, Surface Mount-straight;B1, B2;RKC2SJF170SMTRLFS-Footprint-1;2
+74LVC1G14GV;Inverter, LVC/LCX/Z Series, 1-Func, 1-Input, CMOS, PDSO5;B3;74LVC1G14GV,125-Footprint-1;1
+TDH541S485S;UART_MODBUS_CONVERTER;B4;TD541S485H-Footprint-1;1
+3RL090M-5-S;3R-5-S Series 5 mm 600 V 5 kA Surface Mount Gas Discharge Tube;B5;2036-09-SM-RPLF-H-Footprint-1;1
+CC0603KPX7R8BB105;Ceramic Capacitor, Multilayer, Ceramic, 25V, 10% +Tol, 10% -Tol, X7R, 15% TC, 1uF, Surface Mount, 0603;C1, C9, C19, C20;FP-CC0603-DA-MFG;4
+C0603C103K2RACTU;Ceramic Capacitor, Multilayer, Ceramic, 200V, 10% +Tol, 10% -Tol, X7R, 15% TC, 0.01uF, Surface Mount, 0603;C2;FP-C0603C-CF-IPC_B;1
+GRM188Z71E225KE43D;Ceramic Capacitor, Multilayer, Ceramic, 25V, 10% +Tol, 10% -Tol, X7R, 15% TC, 2.2uF, Surface Mount, 0603;C3;FP-GRM188-0_2-IPC_C;1
+CC0603KRX7R9BB104;Ceramic Capacitor, Multilayer, Ceramic, 25V, 10% +Tol, 10% -Tol, X7R, 15% TC, 0.1uF, Surface Mount, 0603;C4, C8, C11, C13, C14, C16, C17, C18;FP-0603-L_1_6_0_15-W_0_81-MFG;8
+GRM188R60J106ME47D;Ceramic Capacitor, Multilayer, Ceramic, 6.3V, 20% +Tol, 20% -Tol, X5R, 15% TC, 10uF, Surface Mount, 0603;C10, C12;FP-GRM188-0_1-e0_2_0_55-MFG;2
+CC1206KKX7RDBB102;Ceramic Capacitor, Multilayer, Ceramic, 2000V, 10% +Tol, 10% -Tol, X7R, 15% TC, 0.001uF, Surface Mount, 1206;C15;FP-CC1206-0_3-1_45-IPC_A;1
+CC0603KRX7R9BB101;Ceramic Capacitor, Multilayer, Ceramic, 50V, 10% +Tol, 10% -Tol, X7R, 15% TC, 0.0001uF, Surface Mount, 0603;C21, C22;FP-CC0603-DA-IPC_B;2
+APT1608SURCK;Single Color LED, Hyper Red, Water Clear, 1.2mm;D1, D4;FP-APT1608EC-MFG;2
+SMAJ5.0A;Trans Voltage Suppressor Diode, 400W, 5V V(RWM), Unidirectional, 1 Element, Silicon, DO-214AC;D2;BOUR-SMA-2_V;1
+APG1608CGKC/T;Single Color LED, Green, Water Clear, 1.2mm;D3;FP-APG1608CGKC-T-MFG;1
+2920L075DR;PTC Thermistor, 30V, 0.35ohm, Surface Mount;F1;FP-2920L050DR-MFG;1
+BLM18AG121SN1D;Chip Ferrite Bead, 0603, 120O @ 100MHz, 0.18O, 25%, 800mA;FB1;FP-BLM18-0_15-t0_8-IPC_B;1
+VI0921550000G;Barrier Strip Terminal Block;j4;VI0921550000G-Footprint-1;1
+HJ-SMA402;RF SMA Connector;J5;CON-REVSMA-RA;1
+105133-0001;USB Connector, 5 Contact(s), Female, Right Angle, Surface Mount Terminal, Locking, Receptacle;J6;MOLX-105133-0001_V;1
+ACM2520-301-2P-T002;Ferrite Chip, 2 Function(s), 20V, 0.4A, 4 Pin(s);L1;FP-ACM2520-2P-MFG;1
+CMWX1ZZABZ-078;Microcontroller/radio package;MD1;FP-CMWX1ZZABZ-078-MFG;1
+PZ127VS-12-10-H10-A38;Male Header, Pitch 1.27 mm, 2 x 5 Position, Height 5.96 mm, -55 to 125 degC, RoHS, Bulk;P1;SMTC-FTSH-105-01-L-DV_V;1
+RL1210FR-070R5L;Fixed Resistor, Metal Glaze/thick Film, 0.5W, 0.5ohm, 0.5V, 1% +/-Tol, 300ppm/Cel, Surface Mount, 1210;R1;RESC3126X65X50NL10T20;1
+AC0805FR-07100RL;Fixed Resistor, Metal Glaze/thick Film, 0.125W, 100ohm, 150V, 1% +/-Tol, 100ppm/Cel, Surface Mount, 0805;R2, R3, R4;FP-AC0805-IPC_A;3
+CRCW04020000Z0ED;Metal Glaze/thick Film, 0.063W, 0ohm, Surface Mount, 0402;R7, R12, R14;FP-CRCW0402-e3-IPC_A;7
+RC0402FR-0710KL;Fixed Resistor, Metal Glaze/thick Film, 0.0625W, 10000ohm, 50V, 1% +/-Tol, 100ppm/Cel, Surface Mount, 0402;R8;RESC1005X40X25NL05T10;1
+RT1206FRE071ML;Fixed Resistor, Thin Film, 0.25W, 1000000ohm, 200V, 1% +/-Tol, 50ppm/Cel, Surface Mount, 1206;R9;RESC3116X65X40ML10T20;1
+CRCW12061K00JNEC;Fixed Resistor, Metal Glaze/thick Film, 0.25W, 1000ohm, 200V, 5% +/-Tol, 200ppm/Cel, Surface Mount, 1206;R10, R18;FP-CRCW1206-e3-IPC_A;2
+SMW22R7JT;Fixed Resistor, Wire Wound, 2W, 2.7ohm, 300V, 5% +/-Tol, 200ppm/Cel, Surface Mount, 2616;R11, R15;SMW22R7JT-Footprint-1;2
+PTS526SK15SMTR2LFS;TACT 5.2 X 5.2, 1.5 MM H, 260GF,;SW1;FP-PTS526SK15SMTR2LFS-MFG;1
+SPX3819M5-L-3-3/TR;Fixed Positive LDO Regulator, 3.3V, 0.7V Dropout, PDSO5;U1;SOT95P280X145-5N;1
+TPD2S017DBVR;Trans Voltage Suppressor Diode, 5V V(RWM), Unidirectional, 4 Element, Silicon;U2;DBV0006A_N;1
+SM712.TCT;Trans Voltage Suppressor Diode, 400W, 12V V(RWM), Unidirectional, 4 Element, Silicon;U3;SMTC-SOT23-3_V;1

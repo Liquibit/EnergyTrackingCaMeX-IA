@@ -17,6 +17,7 @@
 # limitations under the License.
 #
 import json
+import time
 
 from enum import Enum
 
@@ -58,36 +59,17 @@ class ButtonFile(File, Validatable):
     mask = True if s.read("uint:8") else False
     buttons_state = s.read("uint:8")
     return ButtonFile(button_id=button_id, mask=mask, buttons_state=buttons_state)
-  
-  def generate_home_assistant_data(self, device):
-    mqtt_content = []
-    content={}
-    name = 'Button{}'.format(self.button_id)
-    unique_id = '{}_{}'.format(device['ids'][0], name)
-    component = 'binary_sensor'
 
-    content['state_topic']='homeassistant/{}/{}/state'.format(component, unique_id)
-    content['config_topic']='homeassistant/{}/{}/config'.format(component, unique_id)
-
-    config = {
-      'device': device,
-      # 'icon': we could choose a custom icon
-      # 'json_attributes_topic': ?
-      'name': name,
-      'qos': 1,
-      'unique_id': unique_id,
-      'state_topic': content['state_topic']
+  def generate_scorp_io_data(self, link_budget):
+    timestamp = round( time.time() * 1000 ) # get time in milliseconds
+    data = {
+      "metrics" : [
+        { "name":"Bouton pressé",               "dataType":"Boolean",    "timestamp":timestamp, "value":(self.buttons_state & ButtonStates.BUTTON1_PRESSED.value) > 0 },
+        { "name":"Force du signal radio DASH7", "dataType":"Short",      "timestamp":timestamp, "value":link_budget                                                   },
+      ]
     }
-    
-    content['config'] = json.dumps(config)
-
-    content['state'] = 'ON' if self.mask else 'OFF'
-
-    mqtt_content.append(content)
-    return mqtt_content
-
-  def generate_mindsphere_data(self, link_budget):
-    return None
+    data_json = json.dumps(data)
+    return data_json
   
   def __iter__(self):
     yield self.button_id
@@ -126,36 +108,8 @@ class ButtonConfigFile(File, Validatable):
     button_control_menu = True if s.read("uint:8") else False
     enabled = True if s.read("uint:8") else False
     return ButtonConfigFile(transmit_mask_0=transmit_mask_0, transmit_mask_1=transmit_mask_1, button_control_menu=button_control_menu, enabled=enabled)
-  
-  def generate_home_assistant_data(self, device):
-    mqtt_content = []
-    dict = {'TransmitMask0':self.transmit_mask_0, 'TransmitMask1':self.transmit_mask_1, 'ButtonControlMenu':self.button_control_menu, 'Enabled':self.enabled}
-    for key, value in dict.items():
-      content={}
-      unique_id = '{}_{}'.format(device['ids'][0], key)
-      component = 'binary_sensor'
 
-      content['state_topic']='homeassistant/{}/{}/state'.format(component, unique_id)
-      content['config_topic']='homeassistant/{}/{}/config'.format(component, unique_id)
-
-      config = {
-        'device': device,
-        # 'icon': we could choose a custom icon
-        # 'json_attributes_topic': ?
-        'name': key,
-        'qos': 1,
-        'unique_id': unique_id,
-        'state_topic': content['state_topic']
-      }
-      
-      content['config'] = json.dumps(config)
-
-      content['state'] = 'ON' if value else 'OFF'
-
-      mqtt_content.append(content)
-    return mqtt_content
-
-  def generate_mindsphere_data(self, link_budget):
+  def generate_scorp_io_data(self, link_budget):
     return None
   
   def __iter__(self):

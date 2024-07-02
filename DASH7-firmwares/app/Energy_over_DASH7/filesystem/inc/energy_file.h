@@ -35,5 +35,6 @@ void energy_file_execute_measurement();
 void energy_file_set_measure_state(bool enable);
 void energy_file_set_enabled(bool enable);
 void energy_file_set_interval(uint32_t interval);
+void energy_file_reset_accumulated_energy_data();
 
 #endif

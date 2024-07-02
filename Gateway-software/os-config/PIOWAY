@@ -1,0 +1,12 @@
+su root root
+
+/var/log/PIOWAY {
+    rotate 5
+    weekly
+    compress
+    missingok
+    notifempty
+    postrotate
+	    killall -HUP rsyslogd
+    endscript
+}

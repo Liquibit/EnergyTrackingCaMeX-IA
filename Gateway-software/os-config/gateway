@@ -1,0 +1,20 @@
+#!/bin/bash
+
+PIDFILE=/var/run/gateway.pid
+
+case $1 in
+   start)
+       # Launch your program as a detached process
+       PYTHONPATH=/opt/EnergyTrackingCaMeX-IA/Gateway-software:/opt/EnergyTrackingCaMeX-IA/Gateway-software/pyd7a python3 /opt/EnergyTrackingCaMeX-IA/Gateway-software/PIOWAY/PIOWAY.py --config /opt/EnergyTrackingCaMeX-IA/Gateway-software/os-config/config.ini &
+       # Get its PID and store it
+       echo $! > ${PIDFILE} 
+   ;;
+   stop)
+      kill `cat ${PIDFILE}`
+      # Now that it's killed, don't forget to remove the PID file
+      rm ${PIDFILE}
+   ;;
+   *)
+      echo "usage: gateway {start|stop}" ;;
+esac
+exit 0

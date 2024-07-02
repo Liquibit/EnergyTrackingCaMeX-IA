@@ -1,0 +1,67 @@
+Altium Designer Pick and Place Locations
+C:\Users\Public\Documents\Altium\MODBUS_D7_V2\Project Outputs\Fabrication\Pick Place\_PCB PN_.csv
+
+========================================================================================================================
+File Design Information:
+
+Date:       14/04/24
+Time:       01:36
+Revision:   f15ec651bbd8161cbbf74c367c016c0e00e1fd49
+Variant:    No variations
+Units used: mm
+
+"Designator","Comment","Layer","Center-X(mm)","Center-Y(mm)","Rotation"
+"B1","SKSGACE010","TopLayer","-127.1800mm","27.7000mm","180"
+"R1","RL1210FR-070R5L","TopLayer","-67.3100mm","44.6800mm","180"
+"D2","SMAJ5.0A","TopLayer","-73.7600mm","44.6800mm","0"
+"C1","CC0603KPX7R8BB105","TopLayer","-79.8100mm","47.1500mm","180"
+"C21","CC0603KRX7R9BB101","TopLayer","-77.9000mm","29.7600mm","180"
+"C22","CC0603KRX7R9BB101","TopLayer","-77.9000mm","23.7600mm","0"
+"C12","GRM188R60J106ME47D","TopLayer","-115.8700mm","23.5200mm","0"
+"C11","06033C104KAT2A","TopLayer","-115.8700mm","25.5200mm","0"
+"C10","GRM188R60J106ME47D","TopLayer","-112.8200mm","21.5200mm","180"
+"U2","TPD2S017DBVR","TopLayer","-122.5400mm","21.0700mm","270"
+"R7","CRCW04020000Z0ED","TopLayer","-110.0520mm","42.7700mm","90"
+"j4","VI0921550000G","TopLayer","-49.4600mm","31.8400mm","90"
+"R3","AC0805FR-07100RL","TopLayer","-122.9400mm","55.0200mm","180"
+"R2","AC0805FR-07100RL","TopLayer","-119.9200mm","16.9200mm","180"
+"R4","AC0805FR-07100RL","TopLayer","-119.9200mm","14.1300mm","180"
+"J5","CONSMA002","TopLayer","-125.0200mm","47.2600mm","0"
+"D4","APT1608SURCK","TopLayer","-128.5000mm","55.0100mm","0"
+"R18","CRCW12061K00JNEC","TopLayer","-83.8900mm","24.7600mm","180"
+"R14","CRCW04020000Z0ED","TopLayer","-103.4400mm","26.2200mm","0"
+"R12","CRCW04020000Z0ED","TopLayer","-103.4400mm","28.0200mm","0"
+"R10","CRCW12061K00JNEC","TopLayer","-83.8900mm","28.7600mm","0"
+"C17","06033C104KAT2A","TopLayer","-100.0200mm","29.9350mm","180"
+"C20","CC0603KPX7R8BB105","TopLayer","-85.6600mm","32.2600mm","0"
+"C18","06033C104KAT2A","TopLayer","-85.6600mm","21.2600mm","180"
+"C19","CC0603KPX7R8BB105","TopLayer","-100.0200mm","23.5850mm","0"
+"C16","06033C104KAT2A","TopLayer","-97.0700mm","18.5000mm","0"
+"U3","SM712.TCT","TopLayer","-74.2600mm","26.7600mm","0"
+"R13","RT0603DRE07120RL","TopLayer","-65.2200mm","20.7600mm","0"
+"R9","RT1206FRE071ML","TopLayer","-68.3900mm","25.2600mm","0"
+"R15","SMW22R7JT","TopLayer","-71.7900mm","20.7600mm","0"
+"R11","SMW22R7JT","TopLayer","-71.7900mm","32.7600mm","0"
+"L1","ACM2520-301-2P-T002","TopLayer","-79.1800mm","26.7600mm","0"
+"C15","CC1206KKX7RDBB102","TopLayer","-68.3900mm","28.2600mm","0"
+"B3","74LVC1G14GV,125","TopLayer","-100.8200mm","17.5500mm","0"
+"B5","3RL090M-5-S","TopLayer","-61.7900mm","26.7600mm","270"
+"B4","TD541S485H","TopLayer","-92.8500mm","26.7600mm","270"
+"B2","SKSGACE010","TopLayer","-127.1800mm","39.2000mm","0"
+"C8","06033C104KAT2A","TopLayer","-112.8200mm","25.5200mm","180"
+"C9","CC0603KPX7R8BB105","TopLayer","-112.8200mm","23.5200mm","180"
+"C13","06033C104KAT2A","TopLayer","-122.7200mm","28.1200mm","0"
+"C14","06033C104KAT2A","TopLayer","-122.7200mm","39.9620mm","0"
+"FB1","BLM18AG121SN1D","TopLayer","-114.6300mm","19.5200mm","0"
+"J6","105133-0001","TopLayer","-128.4450mm","21.0700mm","270"
+"MD1","CMWX1ZZABZ-078","TopLayer","-113.6000mm","33.0100mm","90"
+"P1","FTSH-105-01-L-DV","TopLayer","-126.2100mm","33.7000mm","270"
+"C4","06033C104KAT2A","TopLayer","-119.9200mm","11.1700mm","0"
+"D3","APG1608CGKC/T","TopLayer","-128.5000mm","14.0000mm","0"
+"D1","APT1608SURCK","TopLayer","-128.5000mm","15.4600mm","0"
+"SW1","PTS526SK15SMTR2LFS","TopLayer","-126.1700mm","10.2800mm","0"
+"C2","C0603C103K2RACTU","TopLayer","-83.3100mm","52.6300mm","0"
+"C3","GRM188Z71E225KE43D","TopLayer","-83.3100mm","47.1500mm","180"
+"F1","2920L075DR","TopLayer","-59.7600mm","44.6800mm","180"
+"R8","RC0402FR-0710KL","TopLayer","-122.7200mm","26.6200mm","180"
+"U1","SPX3819M5-L-3-3/TR","TopLayer","-82.0000mm","49.9100mm","180"

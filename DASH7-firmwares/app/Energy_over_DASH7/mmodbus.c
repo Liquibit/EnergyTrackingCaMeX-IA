@@ -3,6 +3,7 @@
 #include "mmodbus.h"
 #include "stm32_device.h"
 #include "log.h"
+#include "hwsystem.h"
 MModBus_t mmodbus;
 
 //#####################################################################################################
@@ -56,7 +57,7 @@ uint16_t mmodbus_crc16(const uint8_t *nData, uint16_t wLength)
 } 
 #endif
 //#####################################################################################################
-void modbus_callback_stack(uint8_t data)
+void modbus_callback_stack(uart_handle_t* uart, uint8_t data)
 {
   if(mmodbus.rxIndex <_MMODBUS_RXSIZE - 1)
   {
@@ -661,7 +662,7 @@ bool mmodbus_writeHoldingRegisters16i(uint8_t slaveAddress, uint16_t startnumber
 	  txData[7 + length * 2 + 0] = (crc & 0x00FF);
 	  txData[7 + length * 2 + 1] = (crc & 0xFF00) >> 8;
 	  mmodbus_sendRaw(txData, 7 + length * 2 + 2, 100);
-	  uint16_t recLen = mmodbus_receiveRaw(mmodbus.timeout);
+	  uint16_t recLen = mmodbus_receiveRaw(8, mmodbus.timeout);
 	  if(recLen == 0)
       return false;
 	  crc = mmodbus_crc16(txData, 6);
@@ -678,4 +679,53 @@ bool mmodbus_writeHoldingRegisters16i(uint8_t slaveAddress, uint16_t startnumber
   #endif
 }
 */
+//##################################################################################################
+
+bool mmodbus_writeHoldingRegisters16i_length2(uint8_t slaveAddress, uint16_t startnumber, uint16_t *data)
+{
+  uint8_t length = 2;
+
+	  uint8_t txData[7 + length * 2 + 2];
+	  txData[0] = slaveAddress;
+	  txData[1] = MModbusCMD_WriteMultipleRegisters;
+	  txData[2] = (startnumber & 0xFF00) >> 8;
+	  txData[3] = (startnumber & 0x00FF);
+	  txData[4] = (length & 0xFF00) >> 8;
+	  txData[5] = (length & 0x00FF);
+	  txData[6] = (length * 2);
+	  uint8_t tmp1[2],tmp2[2];
+	  for(uint16_t i=0 ; i<length ; i++)
+	  {   
+      switch(mmodbus.byteOrder16)
+      {
+        case MModBus_16bitOrder_AB:
+        memcpy(tmp1, &data[i], 2);       
+        tmp2[0] = tmp1[1];
+        tmp2[1] = tmp1[0];
+        memcpy(&txData[7 + i * 2], tmp2, 2);    
+        break;
+        default:
+        memcpy(tmp1, &data[i], 2);       
+        tmp2[0] = tmp1[0];
+        tmp2[1] = tmp1[1];
+        memcpy(&txData[7 + i * 2], tmp2, 2);    
+        break;
+      }
+	  }    
+	  static uint16_t crc;
+	  crc = mmodbus_crc16(txData, 7 + length * 2);
+	  txData[7 + length * 2 + 0] = (crc & 0x00FF);
+	  txData[7 + length * 2 + 1] = (crc & 0xFF00) >> 8;
+	  mmodbus_sendRaw(txData, 7 + length * 2 + 2, 100);
+	  uint16_t recLen = mmodbus_receiveRaw(8, mmodbus.timeout);
+	  if(recLen == 0)
+      return false;
+	  crc = mmodbus_crc16(txData, 6);
+	  txData[6] = (crc & 0x00FF);
+	  txData[7] = (crc & 0xFF00) >> 8;  
+	  if(memcmp(txData, mmodbus.rxBuf, 8) == 0)
+      return true;
+	  else
+      return false;
+}
 //##################################################################################################
