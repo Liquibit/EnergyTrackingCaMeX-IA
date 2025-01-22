@@ -92,6 +92,8 @@ class Modem2Mqtt():
           self.config.log = config_parser["LOG"]['location']
 
     self.known_transmitters = [] # make sure to only transmit config once
+    self.publishing_count = 0
+    self.expect_restart = False
 
     self.configure_logger(file=self.config.log, logging_level=(logging.DEBUG if self.config.verbose else logging.INFO))
 
@@ -135,6 +137,7 @@ class Modem2Mqtt():
     logging.info(f"mqtt connected with reason {reason_code}")
     # self.mq.subscribe(self.mqtt_topic_outgoing)
     self.connected_to_mqtt = True
+    self.expect_restart = False
 
     # # Test energy file
     # hexstring = "20 34 00 40 43 00 01 02 03 04 05 06 07 08 09 00 01 02 03 04 05 06 07 08 09 00 01 02 03 04 05 06 07 08 09 00 01 02 03 04 05 06 07 08 09 00 01 02 03 04 05 06 07 08 09 00 01 02 03 04 05 06 07 08 09 00 01 02 03 04 05 06 62 D7 14 32 00 00 39 47 50 00 49 00 A9 20 01 32 36 36 30 00 39 00 4C".replace(" ","")
@@ -146,6 +149,9 @@ class Modem2Mqtt():
   # properties argument is necessary for MQTTv5
   def on_mqtt_disconnect(self, client, userdata, reason_code, properties):
     logging.warning("mqtt disconnected: {}".format(mqtt.connack_string(reason_code)))
+    if self.expect_restart:
+      self.expect_restart = False
+      self.mq.loop_start() # automatically reconnect
 
   def on_mqtt_message(self, client, config, msg):
     # downlink is currently not handled yet
@@ -159,6 +165,8 @@ class Modem2Mqtt():
     except: pass
 
   def on_published(self, client, userdata, mid):
+    if self.publishing_count > 0:
+      self.publishing_count -= 1
     logging.info("published message with id {} successfully".format(mid))
 
   def on_command_received(self, cmd):
@@ -186,9 +194,15 @@ class Modem2Mqtt():
           self.known_transmitters.append(transmitter)
           self.mq.publish(f"mqtts/{self.config.project_id}/DBIRTH/{self.config.edge_node_id}/{transmitterHexString}", CustomFiles.global_sparkplug_config, qos=1, retain=True)
         
-        self.mq.publish(f"mqtts/{self.config.project_id}/DDATA/{self.config.edge_node_id}/{transmitterHexString}", data_json, qos=1, retain=False)
+        result = self.mq.publish(f"mqtts/{self.config.project_id}/DDATA/{self.config.edge_node_id}/{transmitterHexString}", data_json, qos=1, retain=False)
         
-        logging.info(f"published file for {transmitterHexString}")
+        logging.info(f"published file for {transmitterHexString} with error {mqtt.error_string(result.rc)}")
+
+        if self.publishing_count < 5:
+          self.publishing_count += 1
+        else:
+          self.expect_restart = True
+          self.mq.disconnect()
 
     except (AttributeError, IndexError):
       # probably an answer on downlink we don't care about right now

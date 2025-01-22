@@ -59,7 +59,7 @@ The software is written in python3 as it's fully dependant on [the PyD7A library
 
 First pull the code from the public github and put all aspects in the appropriate locations.
 ```
-sudo git clone https://github.com/Liquibit/EnergyTrackingCaMeX-IA.git --recurse-submodules /opt
+sudo git clone https://github.com/Liquibit/EnergyTrackingCaMeX-IA.git --recurse-submodules /opt/EnergyTrackingCaMeX-IA
 sudo chmod +x /opt/EnergyTrackingCaMeX-IA/Gateway-software/os-config/gateway
 sudo ln -s /opt/EnergyTrackingCaMeX-IA/Gateway-software/os-config/gateway /bin/gateway
 sudo ln -s /opt/EnergyTrackingCaMeX-IA/Gateway-software/os-config/gateway.monit /etc/monit/conf.d/
@@ -73,7 +73,7 @@ This will set up the following things:
 
 Then, make sure your python3 instance has all requirements installed
 ```
-python3 -m pip install -r /opt/EnergyTrackingCaMeX-IA/Gateway-software/pyd7a/requirements.txt
+sudo python3 -m pip install -r /opt/EnergyTrackingCaMeX-IA/Gateway-software/pyd7a/requirements.txt
 ```
 
 Now, you should be good to go after a reboot!
