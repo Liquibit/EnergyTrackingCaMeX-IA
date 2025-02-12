@@ -116,6 +116,7 @@ class Modem2Mqtt():
     self.mq.on_connect = self.on_mqtt_connect
     self.mq.on_publish = self.on_published
     self.mq.on_disconnect = self.on_mqtt_disconnect
+    self.mq.on_log = self.on_log
     # self.mq.on_message = self.on_mqtt_message
     if self.config.ca_cert and self.config.cl_cert and self.config.key_file:
       self.mq.tls_set(ca_certs=self.config.ca_cert, certfile=self.config.cl_cert, keyfile=self.config.key_file, tls_version=ssl.PROTOCOL_TLSv1_2)
@@ -147,7 +148,7 @@ class Modem2Mqtt():
     # self.on_command_received(AlpParser(custom_files_class=CustomFiles).parse(ConstBitStream(data), len(data)))
     
   # properties argument is necessary for MQTTv5
-  def on_mqtt_disconnect(self, client, userdata, reason_code, properties):
+  def on_mqtt_disconnect(self, client, userdata, reason_code, properties=None):
     logging.warning("mqtt disconnected: {}".format(mqtt.connack_string(reason_code)))
     if self.expect_restart:
       self.expect_restart = False
@@ -165,8 +166,7 @@ class Modem2Mqtt():
     except: pass
 
   def on_published(self, client, userdata, mid):
-    if self.publishing_count > 0:
-      self.publishing_count -= 1
+    self.publishing_count = 0
     logging.info("published message with id {} successfully".format(mid))
 
   def on_command_received(self, cmd):
@@ -196,13 +196,14 @@ class Modem2Mqtt():
         
         result = self.mq.publish(f"mqtts/{self.config.project_id}/DDATA/{self.config.edge_node_id}/{transmitterHexString}", data_json, qos=1, retain=False)
         
-        logging.info(f"published file for {transmitterHexString} with error {mqtt.error_string(result.rc)}")
+        logging.info(f"published file for {transmitterHexString} with error {mqtt.error_string(result.rc)} and count {self.publishing_count}")
 
         if self.publishing_count < 5:
           self.publishing_count += 1
         else:
+          logging.warning("forcing reconnect of MQTT Connection")
           self.expect_restart = True
-          self.mq.disconnect()
+          self.mq.reconnect()
 
     except (AttributeError, IndexError):
       # probably an answer on downlink we don't care about right now
@@ -212,6 +213,9 @@ class Modem2Mqtt():
       lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
       trace = "".join(lines)
       logging.error("Exception while processing command: \n{}".format(trace))
+      
+  def on_log(self, client, userdata, level, buf):
+    logging.debug(buf)
 
   def run(self):
     logging.info("Started")
